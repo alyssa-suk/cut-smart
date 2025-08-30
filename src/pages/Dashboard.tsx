@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
-import { Plus, Calendar } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Header } from '@/components/Header';
+import { supabase } from '@/integrations/supabase/client';
+import { Plus, FileText } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -18,59 +18,64 @@ interface WeightCuttingPlan {
   current_weight: number;
   desired_weight: number;
   weigh_in_date: string;
-  sport: string;
+  weight_unit: string;
   created_at: string;
 }
 
-const Dashboard = () => {
+export default function Dashboard() {
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [plans, setPlans] = useState<WeightCuttingPlan[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/auth');
-        return;
-      }
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
 
-      try {
-        // Fetch user profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
+  useEffect(() => {
+    if (user) {
+      fetchUserData();
+    }
+  }, [user]);
 
-        if (profileError) throw profileError;
+  const fetchUserData = async () => {
+    try {
+      // Fetch user profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+      } else {
         setProfile(profileData);
-
-        // Fetch user's weight cutting plans
-        const { data: plansData, error: plansError } = await supabase
-          .from('weight_cutting_plans')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (plansError) throw plansError;
-        setPlans(plansData || []);
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
       }
-    };
 
-    checkUser();
-  }, [navigate]);
+      // Fetch user's weight cutting plans
+      const { data: plansData, error: plansError } = await supabase
+        .from('weight_cutting_plans')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
 
-  if (isLoading) {
+      if (plansError) {
+        console.error('Error fetching plans:', plansError);
+      } else {
+        setPlans(plansData || []);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  if (loading || loadingData) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -86,23 +91,23 @@ const Dashboard = () => {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {profile?.name}!
+          <h1 className="text-3xl font-bold mb-2">
+            Welcome back, {profile?.name || 'Athlete'}!
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-muted-foreground">
             Ready to start your weight-cut plan?
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/create-plan')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
+                <Plus className="h-5 w-5 text-primary" />
                 Create New Plan
               </CardTitle>
               <CardDescription>
-                Start a new AI-powered weight cutting plan tailored to your goals
+                Generate a personalized AI-powered weight cutting plan
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -112,45 +117,43 @@ const Dashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate('/plans')}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
+                <FileText className="h-5 w-5 text-accent" />
                 View Saved Plans
               </CardTitle>
               <CardDescription>
-                Access your previous weight cutting plans and track progress
+                Access and manage your existing weight cutting plans
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-sm text-muted-foreground mb-4">
-                You have {plans.length} saved plan{plans.length !== 1 ? 's' : ''}
-              </div>
-              {plans.length > 0 ? (
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {plans.slice(0, 3).map((plan) => (
-                    <div key={plan.id} className="p-2 bg-muted rounded text-sm">
-                      <div className="font-medium">{plan.name}</div>
-                      <div className="text-muted-foreground">
-                        {plan.current_weight} → {plan.desired_weight} lbs | {plan.sport}
-                      </div>
-                    </div>
-                  ))}
-                  {plans.length > 3 && (
-                    <div className="text-xs text-muted-foreground">
-                      +{plans.length - 3} more plans
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">No plans yet</div>
-              )}
+              <Button variant="outline" className="w-full">
+                View Plans ({plans.length})
+              </Button>
             </CardContent>
           </Card>
         </div>
+
+        {plans.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Recent Plans</h2>
+            <div className="grid gap-4">
+              {plans.slice(0, 3).map((plan) => (
+                <Card key={plan.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-lg">{plan.name}</CardTitle>
+                    <CardDescription>
+                      {plan.current_weight} → {plan.desired_weight} {plan.weight_unit} • 
+                      Weigh-in: {new Date(plan.weigh_in_date).toLocaleDateString()}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

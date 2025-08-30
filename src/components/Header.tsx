@@ -1,32 +1,25 @@
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 
-const Header = () => {
+export const Header = () => {
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const { data: user } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    },
-  });
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = async () => {
+    await signOut();
     navigate('/');
   };
 
   return (
-    <header className="border-b border-border bg-background">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div 
-          className="text-2xl font-bold text-primary cursor-pointer"
+          className="text-2xl font-bold text-foreground cursor-pointer flex items-center"
           onClick={() => navigate('/')}
         >
-          CutSmart
+          <span className="text-primary">Cut</span>
+          <span>Smart</span>
         </div>
         
         <nav className="hidden md:flex items-center space-x-6">
@@ -54,15 +47,15 @@ const Header = () => {
 
         <div className="flex items-center space-x-4">
           {user ? (
-            <Button variant="outline" onClick={handleLogout}>
-              Log Out
+            <Button variant="outline" onClick={handleSignOut}>
+              Sign Out
             </Button>
           ) : (
             <>
               <Button variant="outline" onClick={() => navigate('/auth')}>
                 Log In
               </Button>
-              <Button onClick={() => navigate('/auth?mode=signup')}>
+              <Button onClick={() => navigate('/auth')}>
                 Sign Up
               </Button>
             </>
@@ -72,5 +65,3 @@ const Header = () => {
     </header>
   );
 };
-
-export default Header;
