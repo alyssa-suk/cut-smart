@@ -14,7 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      "user info": {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      weight_cutting_plans: {
+        Row: {
+          age: number
+          ai_generated_plan: Json | null
+          created_at: string
+          current_weight: number
+          desired_weight: number
+          food_preferences: string | null
+          gender: string
+          height: number
+          height_unit: string
+          id: string
+          name: string
+          sport: string
+          training_schedule: string
+          updated_at: string
+          user_id: string
+          weigh_in_date: string
+          weight_unit: string
+        }
+        Insert: {
+          age: number
+          ai_generated_plan?: Json | null
+          created_at?: string
+          current_weight: number
+          desired_weight: number
+          food_preferences?: string | null
+          gender: string
+          height: number
+          height_unit: string
+          id?: string
+          name: string
+          sport: string
+          training_schedule: string
+          updated_at?: string
+          user_id: string
+          weigh_in_date: string
+          weight_unit: string
+        }
+        Update: {
+          age?: number
+          ai_generated_plan?: Json | null
+          created_at?: string
+          current_weight?: number
+          desired_weight?: number
+          food_preferences?: string | null
+          gender?: string
+          height?: number
+          height_unit?: string
+          id?: string
+          name?: string
+          sport?: string
+          training_schedule?: string
+          updated_at?: string
+          user_id?: string
+          weigh_in_date?: string
+          weight_unit?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
