@@ -140,7 +140,11 @@ export default function Dashboard() {
             <h2 className="text-2xl font-bold mb-4">Recent Plans</h2>
             <div className="grid gap-4">
               {plans.slice(0, 3).map((plan) => (
-                <Card key={plan.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                <Card 
+                  key={plan.id} 
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate('/create-plan', { state: { planId: plan.id } })}
+                >
                   <CardHeader>
                     <CardTitle className="text-lg">{plan.name}</CardTitle>
                     <CardDescription>

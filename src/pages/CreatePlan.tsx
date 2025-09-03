@@ -16,6 +16,11 @@ import { weightCuttingPlanSchema, type WeightCuttingPlanFormData } from "@/lib/v
 import { SafetyWarning } from "@/components/SafetyWarning";
 import { PlanCalendar } from "@/components/PlanCalendar";
 import { ProgressTracker } from "@/components/ProgressTracker";
+import { HeightInput } from "@/components/HeightInput";
+import { WeightInput } from "@/components/WeightInput";
+import { AgeInput } from "@/components/AgeInput";
+import { UnitConverter } from "@/components/UnitConverter";
+import { AIChat } from "@/components/AIChat";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Download, MessageSquare } from "lucide-react";
 
@@ -24,6 +29,8 @@ const CreatePlan = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState<any>(null);
   const [showPlan, setShowPlan] = useState(false);
+  const [foodUnit, setFoodUnit] = useState<'oz' | 'g'>('oz');
+  const [waterUnit, setWaterUnit] = useState<'oz' | 'l'>('oz');
 
   const form = useForm<WeightCuttingPlanFormData>({
     resolver: zodResolver(weightCuttingPlanSchema),
@@ -145,19 +152,75 @@ const CreatePlan = () => {
   };
 
   const exportPlan = () => {
-    // In a real app, this would generate a PDF
-    const planData = {
-      ...form.getValues(),
-      plan: generatedPlan
-    };
-    const dataStr = JSON.stringify(planData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    // Generate PDF content
+    const formData = form.getValues();
+    const planContent = `
+WEIGHT CUTTING PLAN
+===================
+
+Plan Name: ${formData.name}
+Athlete: ${formData.gender}, Age ${formData.age}
+Height: ${formData.height} ${formData.heightUnit}
+Current Weight: ${formData.currentWeight} ${formData.weightUnit}
+Target Weight: ${formData.desiredWeight} ${formData.weightUnit}
+Weigh-in Date: ${formData.weighInDate}
+Sport: ${formData.sport}
+
+DAILY PLAN
+==========
+
+${generatedPlan.map((day: any, index: number) => `
+DAY ${index + 1} - ${new Date(day.date).toLocaleDateString()}
+Target Weight: ${day.targetWeight?.toFixed(1)} ${formData.weightUnit}
+
+MEALS:
+- Breakfast: ${day.meals.breakfast}
+- Lunch: ${day.meals.lunch}
+- Dinner: ${day.meals.dinner}
+${day.meals.snacks ? `- Snacks: ${day.meals.snacks}` : ''}
+
+HYDRATION:
+- Amount: ${day.hydration.amount}
+- Timing: ${day.hydration.timing.join(', ')}
+
+WORKOUT:
+- Time: ${day.workout.time}
+- Activity: ${day.workout.activity}
+- Duration: ${day.workout.duration}
+
+RECOVERY:
+${day.recovery.map((item: string) => `- ${item}`).join('\n')}
+
+`).join('\n')}
+
+Training Schedule: ${formData.trainingSchedule}
+Food Preferences: ${formData.foodPreferences || 'None specified'}
+
+IMPORTANT: This plan should be supervised by a qualified coach or nutritionist.
+`;
+
+    const dataBlob = new Blob([planContent], { type: 'text/plain' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${form.getValues().name}-weight-cutting-plan.json`;
+    link.download = `${formData.name}-weight-cutting-plan.txt`;
     link.click();
     URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Plan Exported",
+      description: "Your weight cutting plan has been downloaded as a text file.",
+    });
+  };
+
+  const handleUnitsChange = (newFoodUnit: 'oz' | 'g', newWaterUnit: 'oz' | 'l') => {
+    setFoodUnit(newFoodUnit);
+    setWaterUnit(newWaterUnit);
+    // In a real app, you would convert the plan values here
+    toast({
+      title: "Units Updated",
+      description: `Food measurements: ${newFoodUnit}, Water measurements: ${newWaterUnit}`,
+    });
   };
 
   if (showPlan && generatedPlan) {
@@ -198,10 +261,11 @@ const CreatePlan = () => {
             </div>
 
             <Tabs defaultValue="plan" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="plan">Daily Plan</TabsTrigger>
                 <TabsTrigger value="progress">Progress Tracker</TabsTrigger>
                 <TabsTrigger value="chat">AI Assistant</TabsTrigger>
+                <TabsTrigger value="units">Units</TabsTrigger>
               </TabsList>
               
               <TabsContent value="plan" className="mt-6">
@@ -217,24 +281,14 @@ const CreatePlan = () => {
               </TabsContent>
               
               <TabsContent value="chat" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5" />
-                      AI Chat Assistant
-                    </CardTitle>
-                    <CardDescription>
-                      Ask questions about your plan, nutrition, or cutting strategies
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>AI Chat Assistant coming soon!</p>
-                      <p className="text-sm">Get personalized advice and answers to your questions.</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <AIChat 
+                  planData={generatedPlan} 
+                  onPlanUpdate={setGeneratedPlan}
+                />
+              </TabsContent>
+              
+              <TabsContent value="units" className="mt-6">
+                <UnitConverter onUnitsChange={handleUnitsChange} />
               </TabsContent>
             </Tabs>
           </div>
@@ -282,78 +336,12 @@ const CreatePlan = () => {
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="height"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Height</FormLabel>
-                          <div className="flex gap-2">
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                step="0.1"
-                                placeholder="5.5 or 170" 
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              />
-                            </FormControl>
-                            <FormField
-                              control={form.control}
-                              name="heightUnit"
-                              render={({ field }) => (
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <SelectTrigger className="w-20">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="ft">ft</SelectItem>
-                                    <SelectItem value="cm">cm</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
-                            />
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="currentWeight"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Current Weight</FormLabel>
-                          <div className="flex gap-2">
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                step="0.1"
-                                placeholder="170" 
-                                {...field}
-                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                              />
-                            </FormControl>
-                            <FormField
-                              control={form.control}
-                              name="weightUnit"
-                              render={({ field }) => (
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                  <SelectTrigger className="w-20">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="lbs">lbs</SelectItem>
-                                    <SelectItem value="kg">kg</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              )}
-                            />
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                    <HeightInput control={form.control} />
+                    <WeightInput 
+                      control={form.control} 
+                      name="currentWeight" 
+                      label="Current Weight" 
+                      placeholder="170" 
                     />
                   </div>
 
@@ -380,24 +368,7 @@ const CreatePlan = () => {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="age"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Age</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              placeholder="25" 
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <AgeInput control={form.control} />
                   </div>
 
                   <FormField
@@ -427,24 +398,11 @@ const CreatePlan = () => {
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="desiredWeight"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Desired Weight</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              step="0.1"
-                              placeholder="155" 
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                    <WeightInput 
+                      control={form.control} 
+                      name="desiredWeight" 
+                      label="Desired Weight" 
+                      placeholder="155" 
                     />
 
                     <FormField
