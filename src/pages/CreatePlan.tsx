@@ -102,6 +102,53 @@ const CreatePlan = () => {
     return samplePlan;
   };
 
+  const loadSavedInfo = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get the most recent plan to load saved preferences
+      const { data: lastPlan, error } = await supabase
+        .from('weight_cutting_plans')
+        .select('height, height_unit, gender, age, sport, food_preferences')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching saved info:', error);
+        return;
+      }
+
+      if (lastPlan) {
+        form.setValue('height', lastPlan.height);
+        form.setValue('heightUnit', lastPlan.height_unit as 'ft' | 'cm');
+        form.setValue('gender', lastPlan.gender as 'Male' | 'Female');
+        form.setValue('age', lastPlan.age);
+        form.setValue('sport', lastPlan.sport);
+        form.setValue('foodPreferences', lastPlan.food_preferences || '');
+        
+        toast({
+          title: "Info Loaded",
+          description: "Your saved information has been loaded.",
+        });
+      } else {
+        toast({
+          title: "No Saved Info",
+          description: "No previous plans found to load information from.",
+        });
+      }
+    } catch (error) {
+      console.error('Error loading saved info:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load saved information.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSubmit = async (data: WeightCuttingPlanFormData) => {
     setIsLoading(true);
 
@@ -319,6 +366,17 @@ IMPORTANT: This plan should be supervised by a qualified coach or nutritionist.
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <div className="mb-6 flex justify-end">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={loadSavedInfo}
+                  className="gap-2"
+                >
+                  Load Saved Info
+                </Button>
+              </div>
+
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                   <FormField

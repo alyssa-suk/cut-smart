@@ -143,7 +143,7 @@ export default function Dashboard() {
                 <Card 
                   key={plan.id} 
                   className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate('/create-plan', { state: { planId: plan.id } })}
+                  onClick={() => navigate(`/plan/${plan.id}`)}
                 >
                   <CardHeader>
                     <CardTitle className="text-lg">{plan.name}</CardTitle>
