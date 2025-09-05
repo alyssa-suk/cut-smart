@@ -41,36 +41,48 @@ export const AIChat = ({ planData, onPlanUpdate }: AIChatProps) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      // Simulate AI response (in a real app, this would call an AI service)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      let response = "I understand your question. ";
-      
-      if (inputValue.toLowerCase().includes('sweet potato')) {
-        response += "Great alternative to sweet potatoes include: regular potato, quinoa, brown rice, or butternut squash. These provide similar carbohydrates and nutrients.";
-      } else if (inputValue.toLowerCase().includes('chicken')) {
-        response += "If you want alternatives to chicken, consider: turkey breast, lean fish like cod or tilapia, tofu, or lean ground turkey.";
-      } else if (inputValue.toLowerCase().includes('water') || inputValue.toLowerCase().includes('hydration')) {
-        response += "For hydration, you can add lemon, cucumber, or mint to your water for variety. Herbal teas also count toward your fluid intake.";
-      } else if (inputValue.toLowerCase().includes('hungry') || inputValue.toLowerCase().includes('calories')) {
-        response += "If you're feeling too hungry, try adding more fiber-rich vegetables or increase your protein slightly. Make sure you're getting enough sleep as it affects hunger hormones.";
-      } else {
-        response += "That's a great question about your nutrition plan. For specific modifications, I'd recommend consulting with your coach or nutritionist to ensure any changes align with your weight cutting goals.";
+      const response = await fetch('/functions/v1/ai-nutrition-chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: currentInput,
+          planData: planData
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
       }
 
+      const data = await response.json();
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response,
+        content: data.response,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      console.error('Error getting AI response:', error);
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+      
       toast({
         title: "Error",
         description: "Failed to get AI response. Please try again.",
