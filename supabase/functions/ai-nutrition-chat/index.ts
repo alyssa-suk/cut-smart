@@ -20,6 +20,7 @@ serve(async (req) => {
     
     console.log('OpenAI API Key exists:', !!openAIApiKey);
     console.log('Request received with message:', message);
+    console.log('Function is running - timestamp:', new Date().toISOString());
 
     if (!openAIApiKey) {
       console.error('OpenAI API key not found in environment variables');
