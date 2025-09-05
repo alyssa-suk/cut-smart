@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Send, Bot, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -46,22 +47,16 @@ export const AIChat = ({ planData, onPlanUpdate }: AIChatProps) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/functions/v1/ai-nutrition-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('ai-nutrition-chat', {
+        body: {
           message: currentInput,
           planData: planData
-        }),
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI response');
+      if (error) {
+        throw error;
       }
-
-      const data = await response.json();
       
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
