@@ -47,12 +47,17 @@ export const AIChat = ({ planData, onPlanUpdate }: AIChatProps) => {
     setIsLoading(true);
 
     try {
+      console.log('Attempting to call AI function with message:', currentInput);
+      console.log('Plan data:', planData);
+      
       const { data, error } = await supabase.functions.invoke('ai-nutrition-chat', {
         body: {
           message: currentInput,
           planData: planData
         }
       });
+
+      console.log('Function response:', { data, error });
 
       if (error) {
         throw error;
