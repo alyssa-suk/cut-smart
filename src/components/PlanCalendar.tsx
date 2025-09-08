@@ -66,7 +66,7 @@ const convertHydration = (hydration: any, fromUnit: string, toUnit: string) => {
   if (typeof hydration === 'string') {
     // Water conversions (oz <-> l)
     const ozPattern = /(\d+(?:\.\d+)?)\s*oz/gi;
-    const lPattern = /(\d+(?:\.\d+)?)\s*l/gi;
+    const lPattern = /(\d+(?:\.\d+)?)\s*l(?!bs)/gi; // exclude "lbs"
     
     if (fromUnit === 'oz' && toUnit === 'l') {
       return hydration.replace(ozPattern, (match, value) => {
@@ -79,10 +79,27 @@ const convertHydration = (hydration: any, fromUnit: string, toUnit: string) => {
         return `${converted}oz`;
       });
     }
-  } else if (hydration.amount) {
+  } else if (hydration && hydration.amount) {
+    // Handle object format
+    const ozPattern = /(\d+(?:\.\d+)?)\s*oz/gi;
+    const lPattern = /(\d+(?:\.\d+)?)\s*l(?!bs)/gi;
+    
+    let convertedAmount = hydration.amount;
+    if (fromUnit === 'oz' && toUnit === 'l') {
+      convertedAmount = hydration.amount.replace(ozPattern, (match: string, value: string) => {
+        const converted = convertOzToL(parseFloat(value));
+        return `${converted}l`;
+      });
+    } else if (fromUnit === 'l' && toUnit === 'oz') {
+      convertedAmount = hydration.amount.replace(lPattern, (match: string, value: string) => {
+        const converted = convertLToOz(parseFloat(value));
+        return `${converted}oz`;
+      });
+    }
+    
     return {
       ...hydration,
-      amount: convertText(hydration.amount, fromUnit, toUnit)
+      amount: convertedAmount
     };
   }
   
@@ -92,6 +109,7 @@ const convertHydration = (hydration: any, fromUnit: string, toUnit: string) => {
 export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
   const [foodUnit, setFoodUnit] = useState<'oz' | 'g'>('oz');
   const [waterUnit, setWaterUnit] = useState<'oz' | 'l'>('oz');
+  const [originalPlan] = useState(plan); // Store original plan to always convert from base
 
   const toggleFoodUnit = () => {
     setFoodUnit(foodUnit === 'oz' ? 'g' : 'oz');
@@ -114,7 +132,7 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
     }));
   };
 
-  const convertedPlan = convertPlanData(plan);
+  const convertedPlan = convertPlanData(originalPlan);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-6">
