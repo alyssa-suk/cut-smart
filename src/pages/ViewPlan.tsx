@@ -210,11 +210,10 @@ IMPORTANT SAFETY NOTES:
           </div>
 
           <Tabs defaultValue="plan" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="plan">Daily Plan</TabsTrigger>
               <TabsTrigger value="progress">Progress Tracker</TabsTrigger>
               <TabsTrigger value="chat">AI Assistant</TabsTrigger>
-              <TabsTrigger value="units">Units</TabsTrigger>
             </TabsList>
             
             <TabsContent value="plan" className="mt-6">
@@ -239,13 +238,6 @@ IMPORTANT SAFETY NOTES:
               <AIChat 
                 planData={plan.ai_generated_plan} 
                 onPlanUpdate={() => {}}
-              />
-            </TabsContent>
-            
-            <TabsContent value="units" className="mt-6">
-              <UnitConverter 
-                onUnitsChange={handleUnitsChange} 
-                initialWeightUnit={plan.weight_unit}
               />
             </TabsContent>
           </Tabs>

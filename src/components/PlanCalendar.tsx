@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Utensils, Droplets, Dumbbell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Clock, Utensils, Droplets, Dumbbell, RotateCcw } from "lucide-react";
+import { useState } from "react";
 
 interface DayPlan {
   date: string;
@@ -28,16 +30,129 @@ interface PlanCalendarProps {
   weightUnit: string;
 }
 
+// Conversion functions
+const convertOzToG = (value: number) => Math.round(value * 28.3495 * 100) / 100;
+const convertGToOz = (value: number) => Math.round(value / 28.3495 * 100) / 100;
+const convertOzToL = (value: number) => Math.round(value * 0.0295735 * 100) / 100;
+const convertLToOz = (value: number) => Math.round(value / 0.0295735 * 100) / 100;
+
+const convertText = (text: string, fromUnit: string, toUnit: string) => {
+  if (fromUnit === toUnit) return text;
+  
+  // Food conversions (oz <-> g)
+  if ((fromUnit === 'oz' && toUnit === 'g') || (fromUnit === 'g' && toUnit === 'oz')) {
+    const ozPattern = /(\d+(?:\.\d+)?)\s*oz/gi;
+    const gPattern = /(\d+(?:\.\d+)?)\s*g/gi;
+    
+    if (fromUnit === 'oz' && toUnit === 'g') {
+      return text.replace(ozPattern, (match, value) => {
+        const converted = convertOzToG(parseFloat(value));
+        return `${converted}g`;
+      });
+    } else {
+      return text.replace(gPattern, (match, value) => {
+        const converted = convertGToOz(parseFloat(value));
+        return `${converted}oz`;
+      });
+    }
+  }
+  
+  return text;
+};
+
+const convertHydration = (hydration: any, fromUnit: string, toUnit: string) => {
+  if (fromUnit === toUnit || !hydration) return hydration;
+  
+  if (typeof hydration === 'string') {
+    // Water conversions (oz <-> l)
+    const ozPattern = /(\d+(?:\.\d+)?)\s*oz/gi;
+    const lPattern = /(\d+(?:\.\d+)?)\s*l/gi;
+    
+    if (fromUnit === 'oz' && toUnit === 'l') {
+      return hydration.replace(ozPattern, (match, value) => {
+        const converted = convertOzToL(parseFloat(value));
+        return `${converted}l`;
+      });
+    } else if (fromUnit === 'l' && toUnit === 'oz') {
+      return hydration.replace(lPattern, (match, value) => {
+        const converted = convertLToOz(parseFloat(value));
+        return `${converted}oz`;
+      });
+    }
+  } else if (hydration.amount) {
+    return {
+      ...hydration,
+      amount: convertText(hydration.amount, fromUnit, toUnit)
+    };
+  }
+  
+  return hydration;
+};
+
 export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
+  const [foodUnit, setFoodUnit] = useState<'oz' | 'g'>('oz');
+  const [waterUnit, setWaterUnit] = useState<'oz' | 'l'>('oz');
+
+  const toggleFoodUnit = () => {
+    setFoodUnit(foodUnit === 'oz' ? 'g' : 'oz');
+  };
+
+  const toggleWaterUnit = () => {
+    setWaterUnit(waterUnit === 'oz' ? 'l' : 'oz');
+  };
+
+  const convertPlanData = (originalPlan: DayPlan[]) => {
+    return originalPlan.map(day => ({
+      ...day,
+      meals: {
+        breakfast: convertText(day.meals.breakfast, 'oz', foodUnit),
+        lunch: convertText(day.meals.lunch, 'oz', foodUnit),
+        dinner: convertText(day.meals.dinner, 'oz', foodUnit),
+        snacks: day.meals.snacks ? convertText(day.meals.snacks, 'oz', foodUnit) : undefined
+      },
+      hydration: convertHydration(day.hydration, 'oz', waterUnit)
+    }));
+  };
+
+  const convertedPlan = convertPlanData(plan);
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-6">
-        <Calendar className="h-5 w-5 text-primary" />
-        <h2 className="text-2xl font-bold">Your 7-Day Weight Cutting Plan</h2>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-primary" />
+          <h2 className="text-2xl font-bold">Your 7-Day Weight Cutting Plan</h2>
+        </div>
+        
+        {/* Unit Conversion Controls */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <RotateCcw className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Food:</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleFoodUnit}
+              className="w-12 h-8"
+            >
+              {foodUnit}
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Water:</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={toggleWaterUnit}
+              className="w-12 h-8"
+            >
+              {waterUnit}
+            </Button>
+          </div>
+        </div>
       </div>
       
       <div className="grid gap-4">
-        {plan.map((day, index) => (
+        {convertedPlan.map((day, index) => (
           <Card key={index} className="overflow-hidden">
             <CardHeader className="bg-muted/50">
               <CardTitle className="flex items-center justify-between">
@@ -88,12 +203,14 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                   <div className="space-y-2 text-sm">
                     <div>
                       <span className="font-medium">Total:</span>
-                      <p className="text-muted-foreground">{day.hydration.amount}</p>
+                      <p className="text-muted-foreground">
+                        {typeof day.hydration === 'string' ? day.hydration : day.hydration.amount}
+                      </p>
                     </div>
                     <div>
                       <span className="font-medium">Timing:</span>
                       <ul className="text-muted-foreground">
-                        {day.hydration.timing.map((time, i) => (
+                        {(typeof day.hydration === 'string' ? [] : day.hydration.timing || []).map((time, i) => (
                           <li key={i}>• {time}</li>
                         ))}
                       </ul>
