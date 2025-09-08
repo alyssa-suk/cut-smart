@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import MyInfo from "./pages/MyInfo";
 import CreatePlan from "./pages/CreatePlan";
 import ViewPlan from "./pages/ViewPlan";
 import Plans from "./pages/Plans";
@@ -22,9 +23,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Dashboard />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/my-info" element={<MyInfo />} />
             <Route path="/create-plan" element={<CreatePlan />} />
             <Route path="/plan/:planId" element={<ViewPlan />} />
             <Route path="/plans" element={<Plans />} />

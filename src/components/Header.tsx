@@ -27,11 +27,11 @@ export const Header = () => {
             onClick={() => navigate('/')}
             className="text-foreground hover:text-primary transition-colors"
           >
-            Home
+            Dashboard
           </button>
           {user && (
             <button 
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/my-info')}
               className="text-foreground hover:text-primary transition-colors"
             >
               My Info
