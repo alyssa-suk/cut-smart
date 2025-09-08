@@ -35,25 +35,7 @@ Key guidelines:
 - Suggest healthy food alternatives when requested
 - Never recommend dangerous rapid weight loss methods
 - Keep responses concise but informative
-- If asked about substituting foods, provide multiple alternatives with similar nutritional profiles
-
-IMPORTANT: When you provide suggestions that can be applied to the user's plan (like adding workouts, changing meals, adjusting hydration), format your response as JSON with this structure:
-{
-  "response": "Your regular conversational response",
-  "actionable": true,
-  "suggestion": {
-    "title": "Brief title of the change",
-    "description": "What will be changed",
-    "changes": {
-      "day": number (1-7, or null for all days),
-      "field": "meals" | "workout" | "hydration" | "recovery",
-      "action": "replace" | "add" | "modify",
-      "content": "The new content or modification"
-    }
-  }
-}
-
-If your response is just informational without actionable changes, respond normally without JSON formatting.`;
+- If asked about substituting foods, provide multiple alternatives with similar nutritional profiles`;
 
     if (planData && planData.length > 0) {
       systemPrompt += `\n\nCurrent user's plan context: The user has a ${planData.length}-day weight cutting plan with daily meals, hydration, and workout recommendations. Use this context when providing advice.`;
@@ -85,21 +67,7 @@ If your response is just informational without actionable changes, respond norma
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Try to parse as JSON for actionable suggestions
-    let responseData;
-    try {
-      const parsed = JSON.parse(aiResponse);
-      if (parsed.actionable && parsed.suggestion) {
-        responseData = parsed;
-      } else {
-        responseData = { response: aiResponse, actionable: false };
-      }
-    } catch {
-      // Not JSON, treat as regular response
-      responseData = { response: aiResponse, actionable: false };
-    }
-
-    return new Response(JSON.stringify(responseData), {
+    return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {

@@ -12,25 +12,14 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  suggestion?: {
-    title: string;
-    description: string;
-    changes: {
-      day: number | null;
-      field: string;
-      action: string;
-      content: string;
-    };
-  };
 }
 
 interface AIChatProps {
   planData: any;
-  planId?: string;
   onPlanUpdate?: (updatedPlan: any) => void;
 }
 
-export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
+export const AIChat = ({ planData, onPlanUpdate }: AIChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -73,8 +62,7 @@ export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.response,
-        timestamp: new Date(),
-        suggestion: data.actionable ? data.suggestion : undefined
+        timestamp: new Date()
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -104,88 +92,6 @@ export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
-    }
-  };
-
-  const applyPlanChange = async (suggestion: any) => {
-    if (!planId || !planData) {
-      toast({
-        title: "Error",
-        description: "Cannot update plan at this time.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      // Clone the current plan data
-      const updatedPlan = [...planData];
-      const { day, field, action, content } = suggestion.changes;
-
-      if (day !== null) {
-        // Apply to specific day
-        const dayIndex = day - 1;
-        if (dayIndex >= 0 && dayIndex < updatedPlan.length) {
-          if (action === 'replace') {
-            updatedPlan[dayIndex][field] = content;
-          } else if (action === 'add') {
-            if (field === 'meals') {
-              // Add to existing meals
-              const meals = updatedPlan[dayIndex][field];
-              if (typeof meals === 'object') {
-                meals.snacks = meals.snacks ? `${meals.snacks}, ${content}` : content;
-              }
-            } else {
-              updatedPlan[dayIndex][field] = Array.isArray(updatedPlan[dayIndex][field]) 
-                ? [...updatedPlan[dayIndex][field], content]
-                : content;
-            }
-          }
-        }
-      } else {
-        // Apply to all days
-        updatedPlan.forEach((dayPlan: any) => {
-          if (action === 'replace') {
-            dayPlan[field] = content;
-          } else if (action === 'add') {
-            if (field === 'meals' && typeof dayPlan[field] === 'object') {
-              dayPlan[field].snacks = dayPlan[field].snacks ? `${dayPlan[field].snacks}, ${content}` : content;
-            } else {
-              dayPlan[field] = Array.isArray(dayPlan[field]) 
-                ? [...dayPlan[field], content]
-                : content;
-            }
-          }
-        });
-      }
-
-      // Update the plan in Supabase
-      const { error: updateError } = await supabase
-        .from('weight_cutting_plans')
-        .update({ ai_generated_plan: updatedPlan })
-        .eq('id', planId);
-
-      if (updateError) {
-        throw updateError;
-      }
-
-      // Call the callback to refresh the plan view
-      if (onPlanUpdate) {
-        onPlanUpdate(updatedPlan);
-      }
-
-      toast({
-        title: "Plan Updated",
-        description: `Successfully applied: ${suggestion.title}`,
-      });
-
-    } catch (error) {
-      console.error('Error updating plan:', error);
-      toast({
-        title: "Update Failed",
-        description: "Could not update the plan. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -220,19 +126,6 @@ export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
                   }`}>
                     {message.content}
                   </div>
-                  {message.suggestion && (
-                    <div className="mt-2 p-3 bg-accent/50 rounded-lg border">
-                      <div className="text-sm font-medium mb-1">{message.suggestion.title}</div>
-                      <div className="text-xs text-muted-foreground mb-2">{message.suggestion.description}</div>
-                      <Button 
-                        size="sm" 
-                        onClick={() => applyPlanChange(message.suggestion)}
-                        className="text-xs"
-                      >
-                        Apply to Plan
-                      </Button>
-                    </div>
-                  )}
                   <div className="text-xs text-muted-foreground">
                     {message.timestamp.toLocaleTimeString()}
                   </div>

@@ -312,11 +312,8 @@ export default function ViewPlan() {
             
             <TabsContent value="chat" className="mt-6">
               <AIChat 
-                planData={plan.ai_generated_plan}
-                planId={planId}
-                onPlanUpdate={(updatedPlan) => {
-                  setPlan(prev => prev ? { ...prev, ai_generated_plan: updatedPlan } : null);
-                }}
+                planData={plan.ai_generated_plan} 
+                onPlanUpdate={() => {}}
               />
             </TabsContent>
           </Tabs>
