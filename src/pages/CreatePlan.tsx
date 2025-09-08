@@ -110,7 +110,7 @@ const CreatePlan = () => {
       // Get the most recent plan to load saved preferences
       const { data: lastPlan, error } = await supabase
         .from('weight_cutting_plans')
-        .select('height, height_unit, gender, age, sport, food_preferences')
+        .select('height, height_unit, gender, age, sport, food_preferences, current_weight, weight_unit, desired_weight')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -128,6 +128,9 @@ const CreatePlan = () => {
         form.setValue('age', lastPlan.age);
         form.setValue('sport', lastPlan.sport);
         form.setValue('foodPreferences', lastPlan.food_preferences || '');
+        form.setValue('currentWeight', lastPlan.current_weight);
+        form.setValue('weightUnit', lastPlan.weight_unit as 'lbs' | 'kg');
+        form.setValue('desiredWeight', lastPlan.desired_weight);
         
         toast({
           title: "Info Loaded",
