@@ -21,7 +21,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate('/dashboard');
+      navigate('/');
     }
   }, [user, navigate]);
 
@@ -71,7 +71,7 @@ export default function Auth() {
             title: "Welcome back!",
             description: "You have been signed in successfully.",
           });
-          navigate('/dashboard');
+          navigate('/');
         }
       }
 
