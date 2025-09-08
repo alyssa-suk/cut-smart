@@ -34,28 +34,41 @@ const About = () => {
             {user ? (
               <Button 
                 size="lg" 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard')}
                 className="text-lg px-8 py-6"
               >
                 Go to Dashboard
               </Button>
             ) : (
               <>
-                <Button 
-                  size="lg" 
-                  onClick={() => navigate('/auth')}
-                  className="text-lg px-8 py-6"
-                >
-                  Get Started
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={() => navigate('/auth')}
-                  className="text-lg px-8 py-6"
-                >
-                  Log In
-                </Button>
+                <Card className="max-w-md mx-auto mb-6 p-6">
+                  <CardHeader className="text-center pb-4">
+                    <CardTitle className="text-lg">Choose Your Experience</CardTitle>
+                    <CardDescription>
+                      Sign up to save your plans and track progress, or try as a guest
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button 
+                      size="lg" 
+                      onClick={() => navigate('/auth')}
+                      className="w-full text-lg py-6"
+                    >
+                      Sign Up to Save Data
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="lg" 
+                      onClick={() => navigate('/create-plan')}
+                      className="w-full text-lg py-6"
+                    >
+                      Continue as Guest
+                    </Button>
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      Already have an account? <button onClick={() => navigate('/auth')} className="text-primary hover:underline">Log in</button>
+                    </p>
+                  </CardContent>
+                </Card>
               </>
             )}
           </div>
