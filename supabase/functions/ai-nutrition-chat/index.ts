@@ -37,22 +37,23 @@ Key guidelines:
 - Keep responses concise but informative
 - If asked about substituting foods, provide multiple alternatives with similar nutritional profiles
 
-IMPORTANT: When providing actionable suggestions that could update their plan (like food alternatives, workout additions, meal timing changes), first provide your answer, then ask if they would like to update their plan. Structure your response as JSON with this format:
+IMPORTANT: When you provide suggestions that can be applied to the user's plan (like adding workouts, changing meals, adjusting hydration), format your response as JSON with this structure:
 {
-  "response": "Your detailed answer here",
-  "followUp": "Would you like me to update your plan with this suggestion?",
-  "suggestions": [
-    {
-      "type": "food_replacement" | "workout_addition" | "meal_modification",
-      "description": "Brief description of the change",
-      "details": {
-        // Specific details for the change
-      }
+  "response": "Your regular conversational response",
+  "actionable": true,
+  "suggestion": {
+    "title": "Brief title of the change",
+    "description": "What will be changed",
+    "changes": {
+      "day": number (1-7, or null for all days),
+      "field": "meals" | "workout" | "hydration" | "recovery",
+      "action": "replace" | "add" | "modify",
+      "content": "The new content or modification"
     }
-  ]
+  }
 }
 
-For general questions or advice without actionable changes, just provide a plain text response.`;
+If your response is just informational without actionable changes, respond normally without JSON formatting.`;
 
     if (planData && planData.length > 0) {
       systemPrompt += `\n\nCurrent user's plan context: The user has a ${planData.length}-day weight cutting plan with daily meals, hydration, and workout recommendations. Use this context when providing advice.`;
@@ -84,7 +85,21 @@ For general questions or advice without actionable changes, just provide a plain
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    return new Response(JSON.stringify({ response: aiResponse }), {
+    // Try to parse as JSON for actionable suggestions
+    let responseData;
+    try {
+      const parsed = JSON.parse(aiResponse);
+      if (parsed.actionable && parsed.suggestion) {
+        responseData = parsed;
+      } else {
+        responseData = { response: aiResponse, actionable: false };
+      }
+    } catch {
+      // Not JSON, treat as regular response
+      responseData = { response: aiResponse, actionable: false };
+    }
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
