@@ -12,6 +12,8 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  suggestions?: any[];
+  followUp?: string;
 }
 
 interface AIChatProps {
@@ -58,11 +60,29 @@ export const AIChat = ({ planData, onPlanUpdate }: AIChatProps) => {
         throw error;
       }
       
+      // Try to parse the response as JSON first, fallback to plain text
+      let messageContent = data.response;
+      let suggestions = null;
+      let followUp = null;
+      
+      try {
+        const parsedResponse = JSON.parse(data.response);
+        if (parsedResponse.response) {
+          messageContent = parsedResponse.response;
+          suggestions = parsedResponse.suggestions;
+          followUp = parsedResponse.followUp;
+        }
+      } catch {
+        // Keep as plain text if not valid JSON
+      }
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response,
-        timestamp: new Date()
+        content: messageContent,
+        timestamp: new Date(),
+        suggestions,
+        followUp
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -126,6 +146,31 @@ export const AIChat = ({ planData, onPlanUpdate }: AIChatProps) => {
                   }`}>
                     {message.content}
                   </div>
+                  {message.followUp && (
+                    <div className="mt-2 p-3 bg-accent/50 rounded-lg text-sm border border-accent">
+                      <p className="text-accent-foreground mb-3">{message.followUp}</p>
+                      {message.suggestions && message.suggestions.map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          className="mr-2 mb-2"
+                          onClick={() => {
+                            // Handle applying suggestion to plan
+                            if (onPlanUpdate) {
+                              onPlanUpdate(suggestion);
+                              toast({
+                                title: "Plan Updated",
+                                description: suggestion.description,
+                              });
+                            }
+                          }}
+                        >
+                          Apply: {suggestion.description}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
                   <div className="text-xs text-muted-foreground">
                     {message.timestamp.toLocaleTimeString()}
                   </div>
