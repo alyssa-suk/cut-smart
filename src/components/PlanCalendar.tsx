@@ -31,10 +31,10 @@ interface PlanCalendarProps {
 }
 
 // Conversion functions
-const convertOzToG = (value: number) => Math.round(value * 28.3495 * 100) / 100;
-const convertGToOz = (value: number) => Math.round(value / 28.3495 * 100) / 100;
-const convertOzToL = (value: number) => Math.round(value * 0.0295735 * 100) / 100;
-const convertLToOz = (value: number) => Math.round(value / 0.0295735 * 100) / 100;
+const convertOzToG = (value: number) => Math.round(value * 28.3495 * 10) / 10;
+const convertGToOz = (value: number) => Math.round(value / 28.3495 * 10) / 10;
+const convertOzToL = (value: number) => Math.round(value * 0.0295735 * 10) / 10;
+const convertLToOz = (value: number) => Math.round(value / 0.0295735 * 10) / 10;
 
 const convertText = (text: string, fromUnit: string, toUnit: string) => {
   if (fromUnit === toUnit) return text;
@@ -64,34 +64,74 @@ const convertHydration = (hydration: any, fromUnit: string, toUnit: string) => {
   if (fromUnit === toUnit || !hydration) return hydration;
   
   if (typeof hydration === 'string') {
-    // Water conversions (oz <-> l)
-    const ozPattern = /(\d+(?:\.\d+)?)\s*oz/gi;
-    const lPattern = /(\d+(?:\.\d+)?)\s*l(?!bs)/gi; // exclude "lbs"
+    // Water conversions (oz <-> l) - handle ranges and single values
+    const ozRangePattern = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*oz/gi;
+    const ozSinglePattern = /(\d+(?:\.\d+)?)\s*oz/gi;
+    const lRangePattern = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*l(?!bs)/gi;
+    const lSinglePattern = /(\d+(?:\.\d+)?)\s*l(?!bs)/gi;
     
     if (fromUnit === 'oz' && toUnit === 'l') {
-      return hydration.replace(ozPattern, (match, value) => {
+      // Convert ranges first
+      let result = hydration.replace(ozRangePattern, (match, value1, value2) => {
+        const converted1 = convertOzToL(parseFloat(value1));
+        const converted2 = convertOzToL(parseFloat(value2));
+        return `${converted1}-${converted2}l`;
+      });
+      
+      // Then convert any remaining single values
+      result = result.replace(ozSinglePattern, (match, value) => {
         const converted = convertOzToL(parseFloat(value));
         return `${converted}l`;
       });
+      
+      return result;
     } else if (fromUnit === 'l' && toUnit === 'oz') {
-      return hydration.replace(lPattern, (match, value) => {
+      // Convert ranges first
+      let result = hydration.replace(lRangePattern, (match, value1, value2) => {
+        const converted1 = convertLToOz(parseFloat(value1));
+        const converted2 = convertLToOz(parseFloat(value2));
+        return `${converted1}-${converted2}oz`;
+      });
+      
+      // Then convert any remaining single values
+      result = result.replace(lSinglePattern, (match, value) => {
         const converted = convertLToOz(parseFloat(value));
         return `${converted}oz`;
       });
+      
+      return result;
     }
   } else if (hydration && hydration.amount) {
     // Handle object format
-    const ozPattern = /(\d+(?:\.\d+)?)\s*oz/gi;
-    const lPattern = /(\d+(?:\.\d+)?)\s*l(?!bs)/gi;
+    const ozRangePattern = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*oz/gi;
+    const ozSinglePattern = /(\d+(?:\.\d+)?)\s*oz/gi;
+    const lRangePattern = /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*l(?!bs)/gi;
+    const lSinglePattern = /(\d+(?:\.\d+)?)\s*l(?!bs)/gi;
     
     let convertedAmount = hydration.amount;
     if (fromUnit === 'oz' && toUnit === 'l') {
-      convertedAmount = hydration.amount.replace(ozPattern, (match: string, value: string) => {
+      // Convert ranges first
+      convertedAmount = hydration.amount.replace(ozRangePattern, (match: string, value1: string, value2: string) => {
+        const converted1 = convertOzToL(parseFloat(value1));
+        const converted2 = convertOzToL(parseFloat(value2));
+        return `${converted1}-${converted2}l`;
+      });
+      
+      // Then convert any remaining single values
+      convertedAmount = convertedAmount.replace(ozSinglePattern, (match: string, value: string) => {
         const converted = convertOzToL(parseFloat(value));
         return `${converted}l`;
       });
     } else if (fromUnit === 'l' && toUnit === 'oz') {
-      convertedAmount = hydration.amount.replace(lPattern, (match: string, value: string) => {
+      // Convert ranges first
+      convertedAmount = hydration.amount.replace(lRangePattern, (match: string, value1: string, value2: string) => {
+        const converted1 = convertLToOz(parseFloat(value1));
+        const converted2 = convertLToOz(parseFloat(value2));
+        return `${converted1}-${converted2}oz`;
+      });
+      
+      // Then convert any remaining single values
+      convertedAmount = convertedAmount.replace(lSinglePattern, (match: string, value: string) => {
         const converted = convertLToOz(parseFloat(value));
         return `${converted}oz`;
       });
