@@ -65,39 +65,61 @@ const CreatePlan = () => {
     const daysToWeighIn = Math.ceil((new Date(data.weighInDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
     const dailyWeightLoss = (data.currentWeight - data.desiredWeight) / daysToWeighIn;
     
+    // Calculate baseline calories (simplified BMR calculation)
+    const bmr = data.gender === 'Male' 
+      ? (88.362 + (13.397 * data.currentWeight) + (4.799 * (data.heightUnit === 'ft' ? data.height * 30.48 : data.height)) - (5.677 * data.age))
+      : (447.593 + (9.247 * data.currentWeight) + (3.098 * (data.heightUnit === 'ft' ? data.height * 30.48 : data.height)) - (4.330 * data.age));
+    
+    const maintenanceCalories = bmr * 1.6; // Moderate activity level
+    
     // Generate a 7-day sample plan (in a real app, this would be AI-generated)
-    const samplePlan = Array.from({ length: Math.min(7, daysToWeighIn) }, (_, index) => ({
-      date: new Date(Date.now() + index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      meals: {
-        breakfast: index < 3 ? "2 egg whites, 1 slice whole grain toast, green tea" : "1 boiled egg, protein bar, water",
-        lunch: index < 3 ? "Grilled chicken breast (4oz), steamed vegetables, quinoa (1/2 cup)" : "Lean fish (3oz), green salad",
-        dinner: index < 3 ? "Lean protein (3oz), steamed broccoli, sweet potato (small)" : "Protein shake, handful of nuts",
-        snacks: index < 3 ? "Apple with 1 tbsp almond butter" : undefined
-      },
-      hydration: {
-        amount: index < 3 ? "80-100 oz" : index < 5 ? "60-80 oz" : "40-60 oz",
-        timing: index < 3 
-          ? ["Upon waking", "Pre-workout", "Post-workout", "With meals", "Before bed"]
-          : index < 5 
-          ? ["Upon waking", "Pre-workout", "Post-workout", "With meals"]
-          : ["Upon waking", "Pre-workout", "Post-workout"]
-      },
-      workout: {
-        time: data.sport === "Wrestling" ? "5:00 PM" : "6:00 PM",
-        activity: index < 3 
-          ? `${data.sport} practice + 20-min moderate cardio`
+    const samplePlan = Array.from({ length: Math.min(7, daysToWeighIn) }, (_, index) => {
+      // Gradually reduce calories as weigh-in approaches
+      const calorieReduction = index < 3 ? 0.15 : index < 5 ? 0.25 : 0.35;
+      const targetCalories = Math.round(maintenanceCalories * (1 - calorieReduction));
+      
+      return {
+        date: new Date(Date.now() + index * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        calories: {
+          target: targetCalories,
+          breakdown: {
+            breakfast: Math.round(targetCalories * 0.25),
+            lunch: Math.round(targetCalories * 0.35),
+            dinner: Math.round(targetCalories * 0.30),
+            snacks: index < 3 ? Math.round(targetCalories * 0.10) : 0
+          }
+        },
+        meals: {
+          breakfast: index < 3 ? "2 egg whites, 1 slice whole grain toast, green tea" : "1 boiled egg, protein bar, water",
+          lunch: index < 3 ? "Grilled chicken breast (4oz), steamed vegetables, quinoa (1/2 cup)" : "Lean fish (3oz), green salad",
+          dinner: index < 3 ? "Lean protein (3oz), steamed broccoli, sweet potato (small)" : "Protein shake, handful of nuts",
+          snacks: index < 3 ? "Apple with 1 tbsp almond butter" : undefined
+        },
+        hydration: {
+          amount: index < 3 ? "80-100 oz" : index < 5 ? "60-80 oz" : "40-60 oz",
+          timing: index < 3 
+            ? ["Upon waking", "Pre-workout", "Post-workout", "With meals", "Before bed"]
+            : index < 5 
+            ? ["Upon waking", "Pre-workout", "Post-workout", "With meals"]
+            : ["Upon waking", "Pre-workout", "Post-workout"]
+        },
+        workout: {
+          time: data.sport === "Wrestling" ? "5:00 PM" : "6:00 PM",
+          activity: index < 3 
+            ? `${data.sport} practice + 20-min moderate cardio`
+            : index < 5
+            ? `Light ${data.sport} drilling + 15-min cardio`
+            : "Light technique work only",
+          duration: index < 3 ? "90 minutes" : index < 5 ? "60 minutes" : "45 minutes"
+        },
+        recovery: index < 3 
+          ? ["10-min sauna", "Foam rolling", "Stretching", "8 hours sleep"]
           : index < 5
-          ? `Light ${data.sport} drilling + 15-min cardio`
-          : "Light technique work only",
-        duration: index < 3 ? "90 minutes" : index < 5 ? "60 minutes" : "45 minutes"
-      },
-      recovery: index < 3 
-        ? ["10-min sauna", "Foam rolling", "Stretching", "8 hours sleep"]
-        : index < 5
-        ? ["Warm bath", "Light stretching", "8 hours sleep"]
-        : ["Gentle walk", "Meditation", "9 hours sleep"],
-      targetWeight: data.currentWeight - (dailyWeightLoss * (index + 1))
-    }));
+          ? ["Warm bath", "Light stretching", "8 hours sleep"]
+          : ["Gentle walk", "Meditation", "9 hours sleep"],
+        targetWeight: data.currentWeight - (dailyWeightLoss * (index + 1))
+      };
+    });
 
     return samplePlan;
   };

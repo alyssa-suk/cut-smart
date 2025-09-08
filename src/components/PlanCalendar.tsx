@@ -1,11 +1,20 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Utensils, Droplets, Dumbbell, RotateCcw } from "lucide-react";
+import { Calendar, Clock, Utensils, Droplets, Dumbbell, RotateCcw, TrendingDown } from "lucide-react";
 import { useState } from "react";
 
 interface DayPlan {
   date: string;
+  calories?: {
+    target: number;
+    breakdown: {
+      breakfast: number;
+      lunch: number;
+      dinner: number;
+      snacks: number;
+    };
+  };
   meals: {
     breakfast: string;
     lunch: string;
@@ -215,15 +224,57 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
             <CardHeader className="bg-muted/50">
               <CardTitle className="flex items-center justify-between">
                 <span>Day {index + 1} - {new Date(day.date).toLocaleDateString()}</span>
-                {day.targetWeight && (
-                  <Badge variant="outline">
-                    Target: {day.targetWeight.toFixed(2)} {weightUnit}
-                  </Badge>
-                )}
+                <div className="flex gap-2">
+                  {day.calories && (
+                    <Badge variant="secondary">
+                      {day.calories.target} cal
+                    </Badge>
+                  )}
+                  {day.targetWeight && (
+                    <Badge variant="outline">
+                      Target: {day.targetWeight.toFixed(2)} {weightUnit}
+                    </Badge>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+                {/* Calories */}
+                {day.calories && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <TrendingDown className="h-4 w-4 text-primary" />
+                      <h4 className="font-semibold">Calories</h4>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="font-medium">Daily Target:</span>
+                        <p className="text-muted-foreground font-semibold">{day.calories.target} cal</p>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between">
+                          <span className="text-xs">Breakfast:</span>
+                          <span className="text-xs text-muted-foreground">{day.calories.breakdown.breakfast}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs">Lunch:</span>
+                          <span className="text-xs text-muted-foreground">{day.calories.breakdown.lunch}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-xs">Dinner:</span>
+                          <span className="text-xs text-muted-foreground">{day.calories.breakdown.dinner}</span>
+                        </div>
+                        {day.calories.breakdown.snacks > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-xs">Snacks:</span>
+                            <span className="text-xs text-muted-foreground">{day.calories.breakdown.snacks}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {/* Meals */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
