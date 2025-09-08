@@ -29,6 +29,12 @@ export const Header = () => {
           >
             Dashboard
           </button>
+          <button 
+            onClick={() => navigate('/about')}
+            className="text-foreground hover:text-primary transition-colors"
+          >
+            About
+          </button>
           {user && (
             <button 
               onClick={() => navigate('/my-info')}
