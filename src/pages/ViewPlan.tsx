@@ -40,6 +40,7 @@ export default function ViewPlan() {
   const [loading, setLoading] = useState(true);
   const [foodUnit, setFoodUnit] = useState<'oz' | 'g'>('oz');
   const [waterUnit, setWaterUnit] = useState<'oz' | 'l'>('oz');
+  const [weightUnit, setWeightUnit] = useState<string>('');
 
   useEffect(() => {
     if (!user || !planId) {
@@ -70,6 +71,7 @@ export default function ViewPlan() {
       }
 
       setPlan(data);
+      setWeightUnit(data.weight_unit);
     } catch (error) {
       console.error('Error fetching plan:', error);
       navigate('/dashboard');
@@ -131,12 +133,15 @@ IMPORTANT SAFETY NOTES:
     });
   };
 
-  const handleUnitsChange = (newFoodUnit: 'oz' | 'g', newWaterUnit: 'oz' | 'l') => {
+  const handleUnitsChange = (newFoodUnit: 'oz' | 'g', newWaterUnit: 'oz' | 'l', newWeightUnit?: string) => {
     setFoodUnit(newFoodUnit);
     setWaterUnit(newWaterUnit);
+    if (newWeightUnit) {
+      setWeightUnit(newWeightUnit);
+    }
     toast({
       title: "Units Updated",
-      description: `Food: ${newFoodUnit}, Water: ${newWaterUnit}`,
+      description: `Food: ${newFoodUnit}, Water: ${newWaterUnit}${newWeightUnit ? `, Weight: ${newWeightUnit}` : ''}`,
     });
   };
 
@@ -214,7 +219,7 @@ IMPORTANT SAFETY NOTES:
             
             <TabsContent value="plan" className="mt-6">
               {plan.ai_generated_plan ? (
-                <PlanCalendar plan={plan.ai_generated_plan} weightUnit={plan.weight_unit} />
+                <PlanCalendar plan={plan.ai_generated_plan} weightUnit={weightUnit || plan.weight_unit} />
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   No plan details available
@@ -238,7 +243,10 @@ IMPORTANT SAFETY NOTES:
             </TabsContent>
             
             <TabsContent value="units" className="mt-6">
-              <UnitConverter onUnitsChange={handleUnitsChange} />
+              <UnitConverter 
+                onUnitsChange={handleUnitsChange} 
+                initialWeightUnit={plan.weight_unit}
+              />
             </TabsContent>
           </Tabs>
         </div>

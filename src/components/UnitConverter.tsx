@@ -4,23 +4,33 @@ import { RotateCcw } from "lucide-react";
 import { useState } from "react";
 
 interface UnitConverterProps {
-  onUnitsChange: (foodUnit: 'oz' | 'g', waterUnit: 'oz' | 'l') => void;
+  onUnitsChange: (foodUnit: 'oz' | 'g', waterUnit: 'oz' | 'l', weightUnit?: string) => void;
+  initialWeightUnit?: string;
 }
 
-export const UnitConverter = ({ onUnitsChange }: UnitConverterProps) => {
+export const UnitConverter = ({ onUnitsChange, initialWeightUnit }: UnitConverterProps) => {
   const [foodUnit, setFoodUnit] = useState<'oz' | 'g'>('oz');
   const [waterUnit, setWaterUnit] = useState<'oz' | 'l'>('oz');
+  const [weightUnit, setWeightUnit] = useState<'lbs' | 'kg'>(
+    initialWeightUnit?.toLowerCase().includes('kg') ? 'kg' : 'lbs'
+  );
 
   const toggleFoodUnit = () => {
     const newUnit = foodUnit === 'oz' ? 'g' : 'oz';
     setFoodUnit(newUnit);
-    onUnitsChange(newUnit, waterUnit);
+    onUnitsChange(newUnit, waterUnit, weightUnit);
   };
 
   const toggleWaterUnit = () => {
     const newUnit = waterUnit === 'oz' ? 'l' : 'oz';
     setWaterUnit(newUnit);
-    onUnitsChange(foodUnit, newUnit);
+    onUnitsChange(foodUnit, newUnit, weightUnit);
+  };
+
+  const toggleWeightUnit = () => {
+    const newUnit = weightUnit === 'lbs' ? 'kg' : 'lbs';
+    setWeightUnit(newUnit);
+    onUnitsChange(foodUnit, waterUnit, newUnit);
   };
 
   return (
@@ -52,6 +62,17 @@ export const UnitConverter = ({ onUnitsChange }: UnitConverterProps) => {
             className="w-20"
           >
             {waterUnit}
+          </Button>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">Weight measurements:</span>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={toggleWeightUnit}
+            className="w-20"
+          >
+            {weightUnit}
           </Button>
         </div>
       </CardContent>
