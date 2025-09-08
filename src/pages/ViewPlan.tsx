@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { Download, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 interface WeightCuttingPlan {
   id: string;
@@ -83,53 +84,128 @@ export default function ViewPlan() {
   const exportPlan = () => {
     if (!plan) return;
 
-    const planContent = `
-${plan.name}
-Generated on: ${new Date(plan.created_at || '').toLocaleDateString()}
+    const doc = new jsPDF();
+    let yPosition = 20;
+    const lineHeight = 6;
+    const margin = 20;
+    const pageWidth = doc.internal.pageSize.width;
+    const maxWidth = pageWidth - 2 * margin;
 
-ATHLETE INFORMATION:
-- Height: ${plan.height}${plan.height_unit}
-- Current Weight: ${plan.current_weight} ${plan.weight_unit}
-- Target Weight: ${plan.desired_weight} ${plan.weight_unit}
-- Gender: ${plan.gender}
-- Age: ${plan.age}
-- Sport: ${plan.sport}
-- Weigh-in Date: ${new Date(plan.weigh_in_date).toLocaleDateString()}
-- Training Schedule: ${plan.training_schedule}
-${plan.food_preferences ? `- Food Preferences: ${plan.food_preferences}` : ''}
+    // Helper function to add text with auto-wrap
+    const addText = (text: string, fontSize = 10, isBold = false) => {
+      doc.setFontSize(fontSize);
+      if (isBold) {
+        doc.setFont('helvetica', 'bold');
+      } else {
+        doc.setFont('helvetica', 'normal');
+      }
+      
+      const splitText = doc.splitTextToSize(text, maxWidth);
+      doc.text(splitText, margin, yPosition);
+      yPosition += splitText.length * lineHeight;
+      
+      // Check if we need a new page
+      if (yPosition > doc.internal.pageSize.height - 30) {
+        doc.addPage();
+        yPosition = 20;
+      }
+    };
 
-7-DAY WEIGHT CUTTING PLAN:
-${plan.ai_generated_plan ? plan.ai_generated_plan.map((day: any, index: number) => `
-DAY ${index + 1} - ${day.date}${day.targetWeight ? ` (Target: ${day.targetWeight} ${plan.weight_unit})` : ''}
+    // Title
+    addText(plan.name, 16, true);
+    yPosition += 5;
+    addText(`Generated on: ${new Date(plan.created_at || '').toLocaleDateString()}`, 10);
+    yPosition += 10;
 
-MEALS:
-- Breakfast: ${day.meals.breakfast}
-- Lunch: ${day.meals.lunch}
-- Dinner: ${day.meals.dinner}
+    // Athlete Information
+    addText('ATHLETE INFORMATION', 14, true);
+    yPosition += 2;
+    addText(`Height: ${plan.height}${plan.height_unit}`, 10);
+    addText(`Current Weight: ${plan.current_weight} ${plan.weight_unit}`, 10);
+    addText(`Target Weight: ${plan.desired_weight} ${plan.weight_unit}`, 10);
+    addText(`Gender: ${plan.gender}`, 10);
+    addText(`Age: ${plan.age}`, 10);
+    addText(`Sport: ${plan.sport}`, 10);
+    addText(`Weigh-in Date: ${new Date(plan.weigh_in_date).toLocaleDateString()}`, 10);
+    addText(`Training Schedule: ${plan.training_schedule}`, 10);
+    if (plan.food_preferences) {
+      addText(`Food Preferences: ${plan.food_preferences}`, 10);
+    }
+    yPosition += 10;
 
-HYDRATION: ${day.hydration}
-WORKOUT: ${day.workout}
-RECOVERY: ${day.recovery}
-`).join('\n') : 'Plan details not available'}
+    // 7-Day Plan
+    addText('7-DAY WEIGHT CUTTING PLAN', 14, true);
+    yPosition += 5;
 
-IMPORTANT SAFETY NOTES:
-- This plan is AI-generated and should be reviewed by a qualified professional
-- Always prioritize health and safety over rapid weight loss
-- Consult with a doctor or nutritionist before making significant changes
-- Stop the plan if you experience any concerning symptoms
-`;
+    if (plan.ai_generated_plan) {
+      plan.ai_generated_plan.forEach((day: any, index: number) => {
+        // Day header
+        addText(`DAY ${index + 1} - ${day.date}${day.targetWeight ? ` (Target: ${day.targetWeight.toFixed(2)} ${plan.weight_unit})` : ''}`, 12, true);
+        yPosition += 2;
 
-    const dataBlob = new Blob([planContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${plan.name}-weight-cutting-plan.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+        // Meals
+        addText('MEALS:', 11, true);
+        addText(`• Breakfast: ${day.meals.breakfast}`, 10);
+        addText(`• Lunch: ${day.meals.lunch}`, 10);
+        addText(`• Dinner: ${day.meals.dinner}`, 10);
+        if (day.meals.snacks) {
+          addText(`• Snacks: ${day.meals.snacks}`, 10);
+        }
+        yPosition += 3;
+
+        // Hydration
+        addText('HYDRATION:', 11, true);
+        if (typeof day.hydration === 'string') {
+          addText(`Amount: ${day.hydration}`, 10);
+        } else {
+          addText(`Amount: ${day.hydration.amount}`, 10);
+          if (day.hydration.timing) {
+            addText('Timing:', 10);
+            day.hydration.timing.forEach((time: string) => {
+              addText(`  • ${time}`, 10);
+            });
+          }
+        }
+        yPosition += 3;
+
+        // Workout
+        addText('WORKOUT:', 11, true);
+        if (typeof day.workout === 'string') {
+          addText(day.workout, 10);
+        } else {
+          addText(`Time: ${day.workout.time}`, 10);
+          addText(`Activity: ${day.workout.activity}`, 10);
+          addText(`Duration: ${day.workout.duration}`, 10);
+        }
+        yPosition += 3;
+
+        // Recovery
+        addText('RECOVERY:', 11, true);
+        if (Array.isArray(day.recovery)) {
+          day.recovery.forEach((item: string) => {
+            addText(`• ${item}`, 10);
+          });
+        } else {
+          addText(day.recovery, 10);
+        }
+        yPosition += 8;
+      });
+    }
+
+    // Safety notes
+    addText('IMPORTANT SAFETY NOTES', 14, true);
+    yPosition += 2;
+    addText('• This plan is AI-generated and should be reviewed by a qualified professional', 10);
+    addText('• Always prioritize health and safety over rapid weight loss', 10);
+    addText('• Consult with a doctor or nutritionist before making significant changes', 10);
+    addText('• Stop the plan if you experience any concerning symptoms', 10);
+
+    // Save the PDF
+    doc.save(`${plan.name}-weight-cutting-plan.pdf`);
     
     toast({
       title: "Plan Exported",
-      description: "Your weight cutting plan has been downloaded.",
+      description: "Your weight cutting plan has been downloaded as a PDF.",
     });
   };
 
