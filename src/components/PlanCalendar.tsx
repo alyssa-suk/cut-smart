@@ -44,7 +44,7 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                 <span>Day {index + 1} - {new Date(day.date).toLocaleDateString()}</span>
                 {day.targetWeight && (
                   <Badge variant="outline">
-                    Target: {day.targetWeight} {weightUnit}
+                    Target: {day.targetWeight.toFixed(2)} {weightUnit}
                   </Badge>
                 )}
               </CardTitle>
