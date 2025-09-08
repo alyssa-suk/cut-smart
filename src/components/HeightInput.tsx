@@ -56,10 +56,18 @@ export const HeightInput = ({ control }: HeightInputProps) => {
                     step="1"
                     placeholder="9" 
                     className="w-20"
+                    value={field.value ? Math.round((field.value % 1) * 12) : ''}
                     onChange={(e) => {
                       const inches = parseFloat(e.target.value) || 0;
-                      const feet = Math.floor(field.value || 0);
-                      field.onChange(feet + inches / 12);
+                      const currentFeet = Math.floor(field.value || 0);
+                      
+                      if (inches >= 12) {
+                        const additionalFeet = Math.floor(inches / 12);
+                        const remainingInches = inches % 12;
+                        field.onChange(currentFeet + additionalFeet + remainingInches / 12);
+                      } else {
+                        field.onChange(currentFeet + inches / 12);
+                      }
                     }}
                   />
                 ) : null
