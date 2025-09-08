@@ -92,16 +92,18 @@ export const HeightInput = ({ control }: HeightInputProps) => {
                       value={inches || ''}
                       onChange={(e) => {
                         let newInches = parseInt(e.target.value) || 0;
-                        let newFeet = feet;
                         
                         if (newInches >= 12) {
-                          newFeet = feet + Math.floor(newInches / 12);
-                          newInches = newInches % 12;
+                          const additionalFeet = Math.floor(newInches / 12);
+                          const remainingInches = newInches % 12;
+                          const newFeet = feet + additionalFeet;
                           setFeet(newFeet);
+                          setInches(remainingInches);
+                          field.onChange(newFeet + remainingInches / 12);
+                        } else {
+                          setInches(newInches);
+                          field.onChange(feet + newInches / 12);
                         }
-                        
-                        setInches(newInches);
-                        field.onChange(newFeet + newInches / 12);
                       }}
                     />
                   ) : null
