@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Header } from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
+import { formatHeight } from '@/lib/utils';
 import { User, Calendar, Weight, Ruler, Trophy } from 'lucide-react';
 
 interface MostRecentPlan {
@@ -148,7 +149,7 @@ export default function MyInfo() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-muted-foreground">Height</span>
-                  <Badge variant="outline">{mostRecentPlan.height}{mostRecentPlan.height_unit}</Badge>
+                  <Badge variant="outline">{formatHeight(mostRecentPlan.height, mostRecentPlan.height_unit)}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-muted-foreground">Current Weight</span>
