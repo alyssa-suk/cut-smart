@@ -281,26 +281,54 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                     <Utensils className="h-4 w-4 text-primary" />
                     <h4 className="font-semibold">Meals</h4>
                   </div>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-medium">Breakfast:</span>
-                      <p className="text-muted-foreground">{day.meals.breakfast}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Lunch:</span>
-                      <p className="text-muted-foreground">{day.meals.lunch}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium">Dinner:</span>
-                      <p className="text-muted-foreground">{day.meals.dinner}</p>
-                    </div>
-                    {day.meals.snacks && (
-                      <div>
-                        <span className="font-medium">Snacks:</span>
-                        <p className="text-muted-foreground">{day.meals.snacks}</p>
-                      </div>
-                    )}
-                  </div>
+                   <div className="space-y-2 text-sm">
+                     <div>
+                       <div className="flex items-center justify-between">
+                         <span className="font-medium">Breakfast:</span>
+                         {day.calories && (
+                           <Badge variant="outline" className="text-xs">
+                             {day.calories.breakdown.breakfast} cal
+                           </Badge>
+                         )}
+                       </div>
+                       <p className="text-muted-foreground">{day.meals.breakfast}</p>
+                     </div>
+                     <div>
+                       <div className="flex items-center justify-between">
+                         <span className="font-medium">Lunch:</span>
+                         {day.calories && (
+                           <Badge variant="outline" className="text-xs">
+                             {day.calories.breakdown.lunch} cal
+                           </Badge>
+                         )}
+                       </div>
+                       <p className="text-muted-foreground">{day.meals.lunch}</p>
+                     </div>
+                     <div>
+                       <div className="flex items-center justify-between">
+                         <span className="font-medium">Dinner:</span>
+                         {day.calories && (
+                           <Badge variant="outline" className="text-xs">
+                             {day.calories.breakdown.dinner} cal
+                           </Badge>
+                         )}
+                       </div>
+                       <p className="text-muted-foreground">{day.meals.dinner}</p>
+                     </div>
+                     {day.meals.snacks && (
+                       <div>
+                         <div className="flex items-center justify-between">
+                           <span className="font-medium">Snacks:</span>
+                           {day.calories && day.calories.breakdown.snacks > 0 && (
+                             <Badge variant="outline" className="text-xs">
+                               {day.calories.breakdown.snacks} cal
+                             </Badge>
+                           )}
+                         </div>
+                         <p className="text-muted-foreground">{day.meals.snacks}</p>
+                       </div>
+                     )}
+                   </div>
                 </div>
 
                 {/* Hydration */}
