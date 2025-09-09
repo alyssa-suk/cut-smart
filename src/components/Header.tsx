@@ -24,7 +24,7 @@ export const Header = () => {
         
         <nav className="hidden md:flex items-center space-x-6">
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/plans')}
             className="text-foreground hover:text-primary transition-colors"
           >
             Dashboard
