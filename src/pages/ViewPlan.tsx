@@ -249,32 +249,49 @@ export default function ViewPlan() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background glow-bg">
       <Header />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <Button 
-                variant="ghost" 
-                onClick={() => navigate('/dashboard')}
-                className="mb-4 gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-3xl font-bold text-foreground mb-2">
+      
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 gradient-overlay opacity-90"></div>
+        <div className="container mx-auto px-4 py-16 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate('/dashboard')}
+              className="mb-6 gap-2 text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            
+            <div className="space-y-4 mb-8">
+              <h1 className="hero-text">
                 {plan.name}
               </h1>
-              <p className="text-muted-foreground">
-                Created on {new Date(plan.created_at || '').toLocaleDateString()}
-              </p>
+              <div className="accent-line w-32"></div>
+              <div className="flex items-center gap-8 text-muted-foreground">
+                <span>Created {new Date(plan.created_at || '').toLocaleDateString()}</span>
+                <span>•</span>
+                <span>{plan.sport} Athlete</span>
+                <span>•</span>
+                <span>Target: {plan.desired_weight} {plan.weight_unit}</span>
+              </div>
             </div>
-            <Button onClick={exportPlan} className="gap-2">
-              <Download className="h-4 w-4" />
-              Export Plan
-            </Button>
+            
+            <div className="flex gap-4">
+              <Button onClick={exportPlan} variant="hero" className="gap-2">
+                <Download className="h-5 w-5" />
+                Export Plan
+              </Button>
+            </div>
           </div>
+        </div>
+      </div>
+      
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
 
           <div className="mb-6">
             <SafetyWarning
@@ -286,10 +303,10 @@ export default function ViewPlan() {
           </div>
 
           <Tabs defaultValue="plan" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="plan">Daily Plan</TabsTrigger>
-              <TabsTrigger value="progress">Progress Tracker</TabsTrigger>
-              <TabsTrigger value="chat">AI Assistant</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-card/50 backdrop-blur-sm shadow-elevation h-14">
+              <TabsTrigger value="plan" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold text-base">Daily Plan</TabsTrigger>
+              <TabsTrigger value="progress" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold text-base">Progress Tracker</TabsTrigger>
+              <TabsTrigger value="chat" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-semibold text-base">AI Assistant</TabsTrigger>
             </TabsList>
             
             <TabsContent value="plan" className="mt-6">

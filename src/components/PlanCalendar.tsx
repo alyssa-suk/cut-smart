@@ -183,34 +183,37 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
 
   const convertedPlan = convertPlanData(originalPlan);
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <h2 className="text-2xl font-bold">Your 7-Day Weight Cutting Plan</h2>
+    <div className="space-y-8">
+      <div className="flex items-center justify-between mb-8">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <Calendar className="h-6 w-6 text-primary" />
+            <h2 className="section-title">Your 7-Day Plan</h2>
+          </div>
+          <div className="accent-line w-24"></div>
         </div>
         
         {/* Unit Conversion Controls */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <RotateCcw className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Food:</span>
+        <div className="flex items-center gap-6 bg-card/50 backdrop-blur-sm p-4 rounded-lg shadow-elevation">
+          <div className="flex items-center gap-3">
+            <RotateCcw className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-muted-foreground">Food:</span>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={toggleFoodUnit}
-              className="w-12 h-8"
+              className="w-12 h-8 font-bold"
             >
               {foodUnit}
             </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Water:</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-muted-foreground">Water:</span>
             <Button 
               variant="outline" 
               size="sm" 
               onClick={toggleWaterUnit}
-              className="w-12 h-8"
+              className="w-12 h-8 font-bold"
             >
               {waterUnit}
             </Button>
@@ -218,34 +221,45 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
         </div>
       </div>
       
-      <div className="grid gap-4">
+      <div className="grid gap-6">
         {convertedPlan.map((day, index) => (
-          <Card key={index} className="overflow-hidden">
-            <CardHeader className="bg-muted/50">
+          <Card key={index} className="overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300 border-0">
+            <CardHeader className="bg-gradient-card shadow-inner-glow py-6">
               <CardTitle className="flex items-center justify-between">
-                <span>Day {index + 1} - {new Date(day.date).toLocaleDateString()}</span>
-                <div className="flex gap-2">
+                <div className="space-y-2">
+                  <span className="text-2xl font-bold uppercase tracking-wide">Day {index + 1}</span>
+                  <div className="text-sm text-muted-foreground font-medium">
+                    {new Date(day.date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
                   {day.calories && (
-                    <Badge variant="secondary">
-                      {day.calories.target} cal
+                    <Badge variant="secondary" className="font-bold text-sm px-3 py-1">
+                      {day.calories.target} CAL
                     </Badge>
                   )}
                   {day.targetWeight && (
-                    <Badge variant="outline">
-                      Target: {day.targetWeight.toFixed(2)} {weightUnit}
+                    <Badge variant="outline" className="font-bold text-sm px-3 py-1 border-primary">
+                      TARGET: {day.targetWeight.toFixed(2)} {weightUnit.toUpperCase()}
                     </Badge>
                   )}
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <CardContent className="p-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8">
                 {/* Calories */}
                 {day.calories && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <TrendingDown className="h-4 w-4 text-primary" />
-                      <h4 className="font-semibold">Calories</h4>
+                  <div className="space-y-4 p-4 bg-background/50 rounded-lg border border-border/50">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <TrendingDown className="h-5 w-5 text-primary" />
+                      </div>
+                      <h4 className="font-bold text-lg uppercase tracking-wide">Calories</h4>
                     </div>
                     <div className="space-y-2 text-sm">
                       <div>
@@ -276,10 +290,12 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                   </div>
                 )}
                 {/* Meals */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Utensils className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Meals</h4>
+                <div className="space-y-4 p-4 bg-background/50 rounded-lg border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Utensils className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="font-bold text-lg uppercase tracking-wide">Meals</h4>
                   </div>
                    <div className="space-y-2 text-sm">
                      <div>
@@ -332,10 +348,12 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                 </div>
 
                 {/* Hydration */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Droplets className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Hydration</h4>
+                <div className="space-y-4 p-4 bg-background/50 rounded-lg border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Droplets className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="font-bold text-lg uppercase tracking-wide">Hydration</h4>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div>
@@ -356,10 +374,12 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                 </div>
 
                 {/* Workout */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Dumbbell className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Workout</h4>
+                <div className="space-y-4 p-4 bg-background/50 rounded-lg border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Dumbbell className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="font-bold text-lg uppercase tracking-wide">Workout</h4>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div>
@@ -378,10 +398,12 @@ export const PlanCalendar = ({ plan, weightUnit }: PlanCalendarProps) => {
                 </div>
 
                 {/* Recovery */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <h4 className="font-semibold">Recovery</h4>
+                <div className="space-y-4 p-4 bg-background/50 rounded-lg border border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Clock className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="font-bold text-lg uppercase tracking-wide">Recovery</h4>
                   </div>
                   <div className="space-y-1 text-sm">
                     {day.recovery.map((item, i) => (

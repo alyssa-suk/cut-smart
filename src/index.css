@@ -8,57 +8,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 3%;
+    --foreground: 0 0% 100%;
 
-    --card: 240 10% 8%;
+    --card: 0 0% 8%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 8%;
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 120 100% 50%;
-    --primary-foreground: 0 0% 9%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 15%;
+    --secondary: 0 0% 12%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 5% 15%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 120 100% 50%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 142 84% 47%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5% 20%;
-    --input: 240 5% 15%;
-    --ring: 120 100% 50%;
+    --border: 0 0% 18%;
+    --input: 0 0% 12%;
+    --ring: 142 76% 36%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     /* Custom gradients and effects */
-    --gradient-main: linear-gradient(135deg, hsl(240 10% 4%) 0%, hsl(120 20% 8%) 50%, hsl(240 10% 4%) 100%);
-    --gradient-card: linear-gradient(135deg, hsl(240 10% 8%) 0%, hsl(240 8% 12%) 100%);
+    --gradient-main: linear-gradient(135deg, hsl(0 0% 3%) 0%, hsl(142 20% 6%) 35%, hsl(0 0% 3%) 100%);
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(142 15% 10%) 50%, hsl(0 0% 8%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(142 84% 47%) 100%);
+    --gradient-overlay: linear-gradient(135deg, hsl(0 0% 0% / 0.8) 0%, hsl(142 76% 36% / 0.3) 100%);
     
-    /* Glow and shadow effects */
-    --shadow-glow: 0 0 40px hsl(120 100% 50% / 0.1);
-    --shadow-glow-strong: 0 0 60px hsl(120 100% 50% / 0.2), 0 0 100px hsl(120 100% 50% / 0.1);
-    --shadow-glow-subtle: 0 0 20px hsl(120 100% 50% / 0.05), 0 0 40px hsl(120 100% 50% / 0.02);
-    --shadow-card: 0 8px 32px hsl(0 0% 0% / 0.3), 0 0 60px hsl(120 100% 50% / 0.05);
-    --shadow-card-hover: 0 12px 48px hsl(0 0% 0% / 0.4), 0 0 80px hsl(120 100% 50% / 0.1);
-    --shadow-airbrush: 0 0 80px hsl(120 100% 50% / 0.08), inset 0 1px 0 hsl(0 0% 100% / 0.1);
-    --shadow-inner-glow: inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 0 20px hsl(120 100% 50% / 0.05);
+    /* Modern glow and shadow effects */
+    --shadow-glow: 0 0 60px hsl(142 76% 36% / 0.15);
+    --shadow-glow-strong: 0 0 100px hsl(142 76% 36% / 0.25), 0 0 200px hsl(142 84% 47% / 0.1);
+    --shadow-glow-subtle: 0 0 30px hsl(142 76% 36% / 0.08);
+    --shadow-card: 0 20px 60px hsl(0 0% 0% / 0.4), 0 0 80px hsl(142 76% 36% / 0.05);
+    --shadow-card-hover: 0 30px 80px hsl(0 0% 0% / 0.5), 0 0 120px hsl(142 76% 36% / 0.1);
+    --shadow-elevation: 0 8px 32px hsl(0 0% 0% / 0.3);
+    --shadow-inner-glow: inset 0 1px 0 hsl(0 0% 100% / 0.1), inset 0 0 30px hsl(142 76% 36% / 0.05);
 
-    --sidebar-background: 240 10% 6%;
+    --sidebar-background: 0 0% 5%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 120 100% 50%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 240 5% 15%;
+    --sidebar-primary: 142 76% 36%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5% 20%;
-    --sidebar-ring: 120 100% 50%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 142 76% 36%;
   }
 
   .dark {
@@ -117,6 +119,14 @@ All colors MUST be HSL.
     background: var(--gradient-card);
   }
   
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-overlay {
+    background: var(--gradient-overlay);
+  }
+  
   .shadow-glow {
     box-shadow: var(--shadow-glow);
   }
@@ -131,15 +141,16 @@ All colors MUST be HSL.
   
   .shadow-card {
     box-shadow: var(--shadow-card);
-    transition: box-shadow 0.3s ease;
+    transition: all 0.3s ease;
   }
   
   .shadow-card-hover:hover {
     box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
   }
   
-  .shadow-airbrush {
-    box-shadow: var(--shadow-airbrush);
+  .shadow-elevation {
+    box-shadow: var(--shadow-elevation);
   }
   
   .shadow-inner-glow {
@@ -157,8 +168,34 @@ All colors MUST be HSL.
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(circle, hsl(120 100% 50% / 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, hsl(142 76% 36% / 0.1) 0%, transparent 70%);
     z-index: -1;
     pointer-events: none;
+  }
+  
+  .hero-text {
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 4rem);
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: hsl(var(--foreground));
+    text-shadow: 0 0 40px hsl(142 76% 36% / 0.3);
+  }
+  
+  .section-title {
+    font-weight: 800;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    line-height: 1.1;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: hsl(var(--foreground));
+  }
+  
+  .accent-line {
+    height: 4px;
+    background: var(--gradient-hero);
+    border-radius: 2px;
+    box-shadow: 0 0 20px hsl(142 76% 36% / 0.5);
   }
 }
