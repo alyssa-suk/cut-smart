@@ -69,12 +69,21 @@ export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
         throw error;
       }
       
+      // Handle response data properly
+      let content = data.response || "I apologize, but I'm having trouble generating a response right now.";
+      let suggestion = undefined;
+      
+      // Only show actionable suggestions, not raw JSON data
+      if (data.actionable && data.suggestion && data.suggestion.title && data.suggestion.changes) {
+        suggestion = data.suggestion;
+      }
+      
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.response,
+        content: content,
         timestamp: new Date(),
-        suggestion: data.actionable ? data.suggestion : undefined
+        suggestion: suggestion
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -131,15 +140,30 @@ export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
       // Helper function to apply meal modifications
       const applyMealChange = (dayPlan: any) => {
         if (field === 'meals' && action === 'modify' && typeof content === 'object') {
-          // Handle specific meal ingredient replacements
-          const { mealType, oldIngredient, newIngredient } = content;
-          if (mealType && oldIngredient && newIngredient) {
-            if (dayPlan.meals[mealType]) {
-              dayPlan.meals[mealType] = modifyMealText(
-                dayPlan.meals[mealType], 
-                oldIngredient, 
-                newIngredient
-              );
+          // Handle ingredient replacements across all meals
+          const { oldIngredient, newIngredient, mealType } = content;
+          
+          if (oldIngredient && newIngredient) {
+            if (mealType) {
+              // Replace in specific meal type
+              if (dayPlan.meals[mealType]) {
+                dayPlan.meals[mealType] = modifyMealText(
+                  dayPlan.meals[mealType], 
+                  oldIngredient, 
+                  newIngredient
+                );
+              }
+            } else {
+              // Replace across all meal types
+              Object.keys(dayPlan.meals).forEach(meal => {
+                if (dayPlan.meals[meal] && typeof dayPlan.meals[meal] === 'string') {
+                  dayPlan.meals[meal] = modifyMealText(
+                    dayPlan.meals[meal], 
+                    oldIngredient, 
+                    newIngredient
+                  );
+                }
+              });
             }
           }
         } else if (field === 'meals' && action === 'replace' && typeof content === 'object') {

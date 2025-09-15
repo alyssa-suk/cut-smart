@@ -35,47 +35,46 @@ Key guidelines:
 - Suggest healthy food alternatives when requested
 - Never recommend dangerous rapid weight loss methods
 - Keep responses concise but informative
-- If asked about substituting foods, provide multiple alternatives with similar nutritional profiles
+- When users ask to substitute or change ingredients in their plan, ALWAYS provide an actionable suggestion
 
-IMPORTANT: When you provide suggestions that can be applied to the user's plan (like adding workouts, changing meals, adjusting hydration), format your response as JSON with this structure:
+CRITICAL: When users request changes to their nutrition plan (like substituting ingredients, changing meals, adding foods), you MUST respond with a JSON structure that includes both a conversational response AND an actionable suggestion.
 
-For meal ingredient substitutions:
+For ingredient substitutions (like "change sweet potatoes to butternut squash"), use this format:
 {
-  "response": "Your regular conversational response",
+  "response": "Great choice! Butternut squash is an excellent substitute for sweet potatoes. It has similar nutritional benefits with vitamin A, fiber, and complex carbohydrates, but with a slightly different flavor profile and lower glycemic index.",
   "actionable": true,
   "suggestion": {
-    "title": "Brief title of the change",
-    "description": "What will be changed",
+    "title": "Replace sweet potatoes with butternut squash",
+    "description": "All sweet potatoes in your plan will be replaced with butternut squash",
     "changes": {
-      "day": number (1-7, or null for all days),
+      "day": null,
       "field": "meals",
       "action": "modify",
       "content": {
-        "mealType": "breakfast" | "lunch" | "dinner" | "snacks",
-        "oldIngredient": "ingredient to replace",
-        "newIngredient": "replacement ingredient"
+        "oldIngredient": "sweet potato",
+        "newIngredient": "butternut squash"
       }
     }
   }
 }
 
-For other changes:
+For other meal changes, use:
 {
-  "response": "Your regular conversational response", 
+  "response": "Your conversational response",
   "actionable": true,
   "suggestion": {
-    "title": "Brief title of the change",
-    "description": "What will be changed",
+    "title": "Brief description of change",
+    "description": "What will be modified",
     "changes": {
       "day": number (1-7, or null for all days),
-      "field": "meals" | "workout" | "hydration" | "recovery",
-      "action": "replace" | "add",
-      "content": "The new content"
+      "field": "meals",
+      "action": "replace",
+      "content": "new meal content"
     }
   }
 }
 
-If your response is just informational without actionable changes, respond normally without JSON formatting.`;
+IMPORTANT: If the user asks about substituting ANY ingredient or making ANY change to their plan, you MUST provide an actionable JSON response. Only respond without JSON if the question is purely informational with no requested changes.`;
 
     if (planData && planData.length > 0) {
       systemPrompt += `\n\nCurrent user's plan context: The user has a ${planData.length}-day weight cutting plan with daily meals, hydration, and workout recommendations. Use this context when providing advice.`;
@@ -111,13 +110,16 @@ If your response is just informational without actionable changes, respond norma
     let responseData;
     try {
       const parsed = JSON.parse(aiResponse);
-      if (parsed.actionable && parsed.suggestion) {
+      // Validate the structure to ensure it's properly formatted
+      if (parsed.actionable && parsed.suggestion && parsed.suggestion.title && parsed.suggestion.changes) {
         responseData = parsed;
+        console.log('Parsed actionable suggestion:', JSON.stringify(parsed.suggestion, null, 2));
       } else {
         responseData = { response: aiResponse, actionable: false };
       }
-    } catch {
+    } catch (parseError) {
       // Not JSON, treat as regular response
+      console.log('Response not JSON, treating as regular response:', aiResponse);
       responseData = { response: aiResponse, actionable: false };
     }
 
