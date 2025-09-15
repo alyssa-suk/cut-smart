@@ -294,7 +294,11 @@ export default function ViewPlan() {
             
             <TabsContent value="plan" className="mt-6">
               {plan.ai_generated_plan ? (
-                <PlanCalendar plan={plan.ai_generated_plan} weightUnit={weightUnit || plan.weight_unit} />
+                <PlanCalendar 
+                  key={JSON.stringify(plan.ai_generated_plan)} 
+                  plan={plan.ai_generated_plan} 
+                  weightUnit={weightUnit || plan.weight_unit} 
+                />
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   No plan details available
@@ -316,6 +320,10 @@ export default function ViewPlan() {
                 planId={planId}
                 onPlanUpdate={(updatedPlan) => {
                   setPlan(prev => prev ? { ...prev, ai_generated_plan: updatedPlan } : null);
+                  toast({
+                    title: "Plan Updated",
+                    description: "Your plan has been successfully modified.",
+                  });
                 }}
               />
             </TabsContent>
