@@ -119,43 +119,63 @@ export const AIChat = ({ planData, planId, onPlanUpdate }: AIChatProps) => {
 
     try {
       // Clone the current plan data
-      const updatedPlan = [...planData];
+      const updatedPlan = JSON.parse(JSON.stringify(planData));
       const { day, field, action, content } = suggestion.changes;
+
+      // Helper function to modify meal text by replacing ingredients
+      const modifyMealText = (mealText: string, oldIngredient: string, newIngredient: string) => {
+        const regex = new RegExp(oldIngredient, 'gi');
+        return mealText.replace(regex, newIngredient);
+      };
+
+      // Helper function to apply meal modifications
+      const applyMealChange = (dayPlan: any) => {
+        if (field === 'meals' && action === 'modify' && typeof content === 'object') {
+          // Handle specific meal ingredient replacements
+          const { mealType, oldIngredient, newIngredient } = content;
+          if (mealType && oldIngredient && newIngredient) {
+            if (dayPlan.meals[mealType]) {
+              dayPlan.meals[mealType] = modifyMealText(
+                dayPlan.meals[mealType], 
+                oldIngredient, 
+                newIngredient
+              );
+            }
+          }
+        } else if (field === 'meals' && action === 'replace' && typeof content === 'object') {
+          // Replace specific meal components
+          Object.keys(content).forEach(mealType => {
+            if (dayPlan.meals[mealType]) {
+              dayPlan.meals[mealType] = content[mealType];
+            }
+          });
+        } else if (action === 'replace') {
+          // Handle other field replacements
+          dayPlan[field] = content;
+        } else if (action === 'add') {
+          if (field === 'meals') {
+            const meals = dayPlan[field];
+            if (typeof meals === 'object') {
+              meals.snacks = meals.snacks ? `${meals.snacks}, ${content}` : content;
+            }
+          } else {
+            dayPlan[field] = Array.isArray(dayPlan[field]) 
+              ? [...dayPlan[field], content]
+              : content;
+          }
+        }
+      };
 
       if (day !== null) {
         // Apply to specific day
         const dayIndex = day - 1;
         if (dayIndex >= 0 && dayIndex < updatedPlan.length) {
-          if (action === 'replace') {
-            updatedPlan[dayIndex][field] = content;
-          } else if (action === 'add') {
-            if (field === 'meals') {
-              // Add to existing meals
-              const meals = updatedPlan[dayIndex][field];
-              if (typeof meals === 'object') {
-                meals.snacks = meals.snacks ? `${meals.snacks}, ${content}` : content;
-              }
-            } else {
-              updatedPlan[dayIndex][field] = Array.isArray(updatedPlan[dayIndex][field]) 
-                ? [...updatedPlan[dayIndex][field], content]
-                : content;
-            }
-          }
+          applyMealChange(updatedPlan[dayIndex]);
         }
       } else {
         // Apply to all days
         updatedPlan.forEach((dayPlan: any) => {
-          if (action === 'replace') {
-            dayPlan[field] = content;
-          } else if (action === 'add') {
-            if (field === 'meals' && typeof dayPlan[field] === 'object') {
-              dayPlan[field].snacks = dayPlan[field].snacks ? `${dayPlan[field].snacks}, ${content}` : content;
-            } else {
-              dayPlan[field] = Array.isArray(dayPlan[field]) 
-                ? [...dayPlan[field], content]
-                : content;
-            }
-          }
+          applyMealChange(dayPlan);
         });
       }
 

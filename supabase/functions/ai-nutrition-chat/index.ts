@@ -38,6 +38,8 @@ Key guidelines:
 - If asked about substituting foods, provide multiple alternatives with similar nutritional profiles
 
 IMPORTANT: When you provide suggestions that can be applied to the user's plan (like adding workouts, changing meals, adjusting hydration), format your response as JSON with this structure:
+
+For meal ingredient substitutions:
 {
   "response": "Your regular conversational response",
   "actionable": true,
@@ -46,9 +48,29 @@ IMPORTANT: When you provide suggestions that can be applied to the user's plan (
     "description": "What will be changed",
     "changes": {
       "day": number (1-7, or null for all days),
+      "field": "meals",
+      "action": "modify",
+      "content": {
+        "mealType": "breakfast" | "lunch" | "dinner" | "snacks",
+        "oldIngredient": "ingredient to replace",
+        "newIngredient": "replacement ingredient"
+      }
+    }
+  }
+}
+
+For other changes:
+{
+  "response": "Your regular conversational response", 
+  "actionable": true,
+  "suggestion": {
+    "title": "Brief title of the change",
+    "description": "What will be changed",
+    "changes": {
+      "day": number (1-7, or null for all days),
       "field": "meals" | "workout" | "hydration" | "recovery",
-      "action": "replace" | "add" | "modify",
-      "content": "The new content or modification"
+      "action": "replace" | "add",
+      "content": "The new content"
     }
   }
 }
