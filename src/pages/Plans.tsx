@@ -5,7 +5,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Header } from '@/components/Header';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Calendar, Target, Trophy } from 'lucide-react';
+import { ArrowLeft, Calendar, Target, Trophy, Trash2 } from 'lucide-react';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface WeightCuttingPlan {
   id: string;
@@ -21,8 +33,10 @@ interface WeightCuttingPlan {
 export default function Plans() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [plans, setPlans] = useState<WeightCuttingPlan[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(true);
+  const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -53,6 +67,38 @@ export default function Plans() {
       console.error('Error fetching plans:', error);
     } finally {
       setLoadingPlans(false);
+    }
+  };
+
+  const deletePlan = async (planId: string, planName: string) => {
+    setDeletingPlanId(planId);
+    try {
+      const { error } = await supabase
+        .from('weight_cutting_plans')
+        .delete()
+        .eq('id', planId)
+        .eq('user_id', user?.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Remove the plan from local state
+      setPlans(prevPlans => prevPlans.filter(plan => plan.id !== planId));
+      
+      toast({
+        title: "Plan Deleted",
+        description: `Successfully deleted "${planName}"`,
+      });
+    } catch (error) {
+      console.error('Error deleting plan:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete plan. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingPlanId(null);
     }
   };
 
@@ -105,28 +151,61 @@ export default function Plans() {
           ) : (
             <div className="grid gap-4">
               {plans.map((plan) => (
-                <Card 
-                  key={plan.id} 
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(`/plan/${plan.id}`)}
-                >
+                <Card key={plan.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div 
+                        className="flex-1 cursor-pointer"
+                        onClick={() => navigate(`/plan/${plan.id}`)}
+                      >
                         <CardTitle className="text-lg">{plan.name}</CardTitle>
                         <CardDescription className="mt-1">
                           Created on {new Date(plan.created_at).toLocaleDateString()}
                         </CardDescription>
                       </div>
-                      <div className="text-right text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1 mb-1">
-                          <Trophy className="h-4 w-4" />
-                          {plan.sport}
+                      <div className="flex items-center gap-2">
+                        <div className="text-right text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Trophy className="h-4 w-4" />
+                            {plan.sport}
+                          </div>
                         </div>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              disabled={deletingPlanId === plan.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Plan</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{plan.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => deletePlan(plan.id, plan.name)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent 
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/plan/${plan.id}`)}
+                  >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Target className="h-4 w-4 text-primary" />
