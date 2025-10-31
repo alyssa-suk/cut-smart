@@ -232,7 +232,7 @@ const About = () => {
       
       <footer className="container mx-auto px-4 py-8 text-center">
         <p className="text-sm text-muted-foreground">
-          Developed by Alyssa Sukharenko, using Lovable
+          Developed by Alyssa Sukharenko, using Lovable AI
         </p>
       </footer>
     </div>
