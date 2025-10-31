@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/70f1d68a-6ac3-4542-8594-29417833600a
+**URL**:(https://cut-smart.lovable.app/)
 
 ## How can I edit this code?
 
@@ -10,7 +10,7 @@ There are several ways of editing your application.
 
 **Use Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/70f1d68a-6ac3-4542-8594-29417833600a) and start prompting.
+Simply visit the  and start prompting.
 
 Changes made via Lovable will be committed automatically to this repo.
 
