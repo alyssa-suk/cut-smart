@@ -229,6 +229,12 @@ const About = () => {
           </div>
         </section>
       </main>
+      
+      <footer className="container mx-auto px-4 py-8 text-center">
+        <p className="text-sm text-muted-foreground">
+          Developed by Alyssa Sukharenko, using Lovable
+        </p>
+      </footer>
     </div>
   );
 };
