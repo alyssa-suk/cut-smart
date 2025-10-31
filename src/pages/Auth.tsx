@@ -193,6 +193,22 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
+          
+          <div className="mt-4 text-center">
+            <Button 
+              variant="ghost" 
+              className="w-full"
+              onClick={() => {
+                localStorage.setItem('guest-mode', 'true');
+                navigate('/dashboard');
+              }}
+            >
+              Continue as Guest
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Guest mode: Your plans won't be saved
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

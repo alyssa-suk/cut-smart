@@ -44,14 +44,23 @@ export default function Dashboard() {
   const [deletingPlanId, setDeletingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
+    const isGuestMode = localStorage.getItem('guest-mode') === 'true';
+    if (!loading && !user && !isGuestMode) {
       navigate('/auth');
     }
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    const isGuestMode = localStorage.getItem('guest-mode') === 'true';
     if (user) {
       fetchUserData();
+    } else if (isGuestMode) {
+      // Load plans from localStorage for guest mode
+      const guestPlans = localStorage.getItem('guest-plans');
+      if (guestPlans) {
+        setPlans(JSON.parse(guestPlans));
+      }
+      setLoadingData(false);
     }
   }, [user]);
 
@@ -138,11 +147,16 @@ export default function Dashboard() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">
-            Welcome back, {profile?.name || 'Athlete'}!
+            Welcome back, {profile?.name || (localStorage.getItem('guest-mode') === 'true' ? 'Guest' : 'Athlete')}!
           </h1>
           <p className="text-muted-foreground">
             Ready to start your weight-cut plan?
           </p>
+          {localStorage.getItem('guest-mode') === 'true' && (
+            <p className="text-sm text-yellow-600 dark:text-yellow-500 mt-2">
+              You're in guest mode - plans won't be saved permanently
+            </p>
+          )}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">

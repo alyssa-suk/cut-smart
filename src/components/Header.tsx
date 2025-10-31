@@ -7,6 +7,8 @@ export const Header = () => {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
+    localStorage.removeItem('guest-mode');
+    localStorage.removeItem('guest-plans');
     await signOut();
     navigate('/');
   };
@@ -46,9 +48,9 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          {user ? (
+          {user || localStorage.getItem('guest-mode') === 'true' ? (
             <Button variant="outline" onClick={handleSignOut}>
-              Sign Out
+              {localStorage.getItem('guest-mode') === 'true' ? 'Exit Guest Mode' : 'Sign Out'}
             </Button>
           ) : (
             <>
