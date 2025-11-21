@@ -52,9 +52,12 @@ const CreatePlan = () => {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/auth');
+      const isGuest = localStorage.getItem('guest-mode') === 'true';
+      if (!isGuest) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          navigate('/auth');
+        }
       }
     };
     checkUser();
@@ -126,6 +129,16 @@ const CreatePlan = () => {
 
   const loadSavedInfo = async () => {
     try {
+      const isGuest = localStorage.getItem('guest-mode') === 'true';
+      
+      if (isGuest) {
+        toast({
+          title: "Guest Mode",
+          description: "Sign up to save and load your information.",
+        });
+        return;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -178,40 +191,53 @@ const CreatePlan = () => {
     setIsLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      const isGuest = localStorage.getItem('guest-mode') === 'true';
 
       // Generate AI plan
       const aiPlan = generateAIPlan(data);
 
-      const { error } = await supabase
-        .from('weight_cutting_plans')
-        .insert({
-          user_id: user.id,
-          name: data.name,
-          height: data.height,
-          height_unit: data.heightUnit,
-          current_weight: data.currentWeight,
-          weight_unit: data.weightUnit,
-          gender: data.gender,
-          age: data.age,
-          sport: data.sport,
-          desired_weight: data.desiredWeight,
-          weigh_in_date: data.weighInDate,
-          training_schedule: data.trainingSchedule,
-          food_preferences: data.foodPreferences,
-          ai_generated_plan: aiPlan,
+      if (isGuest) {
+        // In guest mode, just show the plan without saving to database
+        setGeneratedPlan(aiPlan);
+        setShowPlan(true);
+
+        toast({
+          title: "Plan Generated (Guest Mode)",
+          description: "Your plan has been created but won't be saved. Sign up to save your plans!",
         });
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
 
-      if (error) throw error;
+        const { error } = await supabase
+          .from('weight_cutting_plans')
+          .insert({
+            user_id: user.id,
+            name: data.name,
+            height: data.height,
+            height_unit: data.heightUnit,
+            current_weight: data.currentWeight,
+            weight_unit: data.weightUnit,
+            gender: data.gender,
+            age: data.age,
+            sport: data.sport,
+            desired_weight: data.desiredWeight,
+            weigh_in_date: data.weighInDate,
+            training_schedule: data.trainingSchedule,
+            food_preferences: data.foodPreferences,
+            ai_generated_plan: aiPlan,
+          });
 
-      setGeneratedPlan(aiPlan);
-      setShowPlan(true);
+        if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Your AI-powered weight cutting plan has been generated!",
-      });
+        setGeneratedPlan(aiPlan);
+        setShowPlan(true);
+
+        toast({
+          title: "Success",
+          description: "Your AI-powered weight cutting plan has been generated!",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error",
