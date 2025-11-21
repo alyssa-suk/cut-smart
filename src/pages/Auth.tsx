@@ -200,7 +200,7 @@ export default function Auth() {
               className="w-full"
               onClick={() => {
                 localStorage.setItem('guest-mode', 'true');
-                navigate('/dashboard');
+                navigate('/create-plan');
               }}
             >
               Continue as Guest
